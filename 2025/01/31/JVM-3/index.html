@@ -1,0 +1,324 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>JVM-3 | AllimacBlog</title><meta name="author" content="Allimac"><meta name="copyright" content="Allimac"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="JVM内存管理">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JVM-3">
+<meta property="og:url" content="http://example.com/2025/01/31/JVM-3/index.html">
+<meta property="og:site_name" content="AllimacBlog">
+<meta property="og:description" content="JVM内存管理">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://s21.ax1x.com/2025/01/31/pEVzwqI.jpg">
+<meta property="article:published_time" content="2025-01-31T03:18:42.000Z">
+<meta property="article:modified_time" content="2025-01-31T03:20:26.915Z">
+<meta property="article:author" content="Allimac">
+<meta property="article:tag" content="JVM">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s21.ax1x.com/2025/01/31/pEVzwqI.jpg"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "JVM-3",
+  "url": "http://example.com/2025/01/31/JVM-3/",
+  "image": "https://s21.ax1x.com/2025/01/31/pEVzwqI.jpg",
+  "datePublished": "2025-01-31T03:18:42.000Z",
+  "dateModified": "2025-01-31T03:20:26.915Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Allimac",
+      "url": "http://example.com/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/faviconcute.png"><link rel="canonical" href="http://example.com/2025/01/31/JVM-3/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'JVM-3',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">9</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">7</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 链接</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></li><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></li></ul></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://s21.ax1x.com/2025/01/31/pEVzwqI.jpg);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">AllimacBlog</span></a><a class="nav-page-title" href="/"><span class="site-name">JVM-3</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 链接</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></li><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></li></ul></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">JVM-3</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-01-31T03:18:42.000Z" title="发表于 2025-01-31 11:18:42">2025-01-31</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-01-31T03:20:26.915Z" title="更新于 2025-01-31 11:20:26">2025-01-31</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/JAVA/">JAVA</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">3.7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>11分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="JVM垃圾回收机制"><a href="#JVM垃圾回收机制" class="headerlink" title="JVM垃圾回收机制"></a>JVM垃圾回收机制</h1><p>垃圾回收并不是伴随着java而产生的，历史很悠久。这是段废话</p>
+<h2 id="垃圾的判定"><a href="#垃圾的判定" class="headerlink" title="垃圾的判定"></a>垃圾的判定</h2><p>确定哪些内存当中的对象是垃圾–不再被程序使用的对象</p>
+<p>java当中 采用两种基本方法回收垃圾：引用计数法和可达性分析</p>
+<h3 id="引用计数法"><a href="#引用计数法" class="headerlink" title="引用计数法"></a>引用计数法</h3><p>最直观的垃圾收集技术</p>
+<p><strong>给每个对象分配一个引用计数器，每当有一个地方引用这个对象时，计数器加1；引用失效时，计数器值减1</strong></p>
+<p>任何时刻计数器为0的对象就是不可能再被使用的，就可以回收他所占的内存</p>
+<p>但是这个方法存在一个问题—-循环引用</p>
+<p>在循环引用中，两个或多个对象相互引用，但它们可能都已经不再被其他活动部分的应用程序所引用。由于它们相互引用，因此它们的引用计数永远不会达到0，导致内存泄漏。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">ReferenceCounting</span> &#123;</span><br><span class="line">    <span class="type">Object</span> <span class="variable">instance</span> <span class="operator">=</span> <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title function_">main</span><span class="params">(String[] args)</span> &#123;</span><br><span class="line">        <span class="type">ReferenceCounting</span> <span class="variable">objA</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReferenceCounting</span>();</span><br><span class="line">        <span class="type">ReferenceCounting</span> <span class="variable">objB</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ReferenceCounting</span>();</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 创建循环引用</span></span><br><span class="line">        objA.instance = objB;</span><br><span class="line">        objB.instance = objA;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 尝试手动置空以断开引用</span></span><br><span class="line">        objA = <span class="literal">null</span>;</span><br><span class="line">        objB = <span class="literal">null</span>;</span><br><span class="line"></span><br><span class="line">        <span class="comment">// 希望GC能回收objA和objB，但如果是采用引用计数法，则无法回收</span></span><br><span class="line">        System.gc();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="可达性分析"><a href="#可达性分析" class="headerlink" title="可达性分析"></a>可达性分析</h3><p>Java采用的是可达性分析算法来进行垃圾回收。在这种方法中，通过一系列的称为“GC Roots”的对象作为起点，然后向下搜索，搜索所走过的路径称为引用链（Reference Chain）。<strong>当一个对象到GC Roots没有任何引用链相连（即从GC Roots到这个对象不可达）时，则证明此对象是不可用的。</strong></p>
+<p>比如说：</p>
+<p><img src="https://i-blog.csdnimg.cn/blog_migrate/cfaac78afc516644698d2304cc7abc6e.png#pic_center" alt="2"></p>
+<p>在java当中 可以作为GC ROOTS的常见对象包括：</p>
+<ul>
+<li>虚拟机栈当中引用的对象：正在执行的方法当中的局部变量or参数</li>
+<li>方法区中类静态属性引用的对象：这些静态变量所引用的对象也被称为 GC Roots。</li>
+<li>方法区当中常量引用的对象：例如，字符串常量池（String Table）的引用</li>
+<li>本地方法栈中JNI引用的对象：使用 JNI 调用本地方法的过程中，会涉及到本地方法栈，其中引用的对象也是 GC Roots。</li>
+<li>所有被同步锁持有的对象</li>
+<li>java虚拟机内部的引用</li>
+</ul>
+<hr>
+<p>**对于虚拟机栈当中引用的对象：**我们在程序当中创建一个对象，对象会在heap当中开辟一块空间。同时，这块空间的地址作为引用，保存到虚拟机栈当中。就相当于栈帧入栈。如果对象生命周期结束，那么引用就会从虚拟机当中出栈。因此，如果在虚拟机栈当中，有heap当中的对象引用，那就说明这个对象有用，不需要回收</p>
+<p>**在类当中定义的全局的静态的对象：**也就是使用了static关键字。由于虚拟机栈是线程私有的，所以这种对象的引用，会保存在方法区当中（线程共享的）。那么显然，方法区中的静态引用作为gc roots是必须的</p>
+<p>**常量引用：**static final关键字。这种引用初始化之后不会修改，所以方法区常量池当中的引用的对象也应该作为GCROOTS</p>
+<p><strong>在使用JNI技术时</strong>，有时候单纯的Java代码并不能满足我们的需求，我们可能需要在Java中调用C或C++的代码，因此会使用native方法，JVM内存中专门有一块本地方法栈，用来保存这些对象的引用，所以本地方法栈中引用的对象也会被作为GC Roots。</p>
+<hr>
+<h2 id="垃圾收集算法"><a href="#垃圾收集算法" class="headerlink" title="垃圾收集算法"></a>垃圾收集算法</h2><h3 id="标记-清除算法："><a href="#标记-清除算法：" class="headerlink" title="标记-清除算法："></a>标记-清除算法：</h3><p>标记-清除（Mark-and-Sweep）算法分为“标记（Mark）”和“清除（Sweep）”阶段：首先标记出所有不需要回收的对象，在标记完成后统一回收掉所有没有被标记的对象。</p>
+<p>它是最基础的收集算法，后续的算法都是对其不足进行改进得到。这种垃圾收集算法会带来两个明显的问题：</p>
+<ol>
+<li><strong>效率问题</strong>：标记和清除两个过程效率都不高。</li>
+<li><strong>空间问题</strong>：标记清除后会产生大量不连续的内存碎片。</li>
+</ol>
+<p><img src="https://oss.javaguide.cn/github/javaguide/java/jvm/mark-and-sweep-garbage-collection-algorithm.png" alt="2"></p>
+<p>关于具体是标记可回收对象（不可达对象）还是不可回收对象（可达对象），众说纷纭，两种说法其实都没问题</p>
+<p>如果按照前者的理解，整个标记-清除过程大致是这样的：</p>
+<ol>
+<li>当一个对象被创建时，给一个标记位，假设为 0 (false)；</li>
+<li>在标记阶段，我们将所有可达对象（或用户可以引用的对象）的标记位设置为 1 (true)；</li>
+<li>扫描阶段清除的就是标记位为 0 (false)的对象。</li>
+</ol>
+<h3 id="复制算法："><a href="#复制算法：" class="headerlink" title="复制算法："></a>复制算法：</h3><p>为了解决上面算法当中出现的内存碎片的问题，复制算法将内存分为大小相同的两块，每次使用其中的一块。当这一块的内存使用完之后，就将还存活的对象复制到另外一块去。再把使用的空间一次性清理掉。这样就使每次的内存回收都是对内存区间的一半进行回收</p>
+<p><img src="https://oss.javaguide.cn/github/javaguide/java/jvm/copying-garbage-collection-algorithm.png" alt="1"></p>
+<p>虽然内存复制改进了内存碎片产生的问题，但是：</p>
+<ul>
+<li>可用内存变小</li>
+<li>不适合老年代：存活对象数量比较大，复制性能会变得很差</li>
+</ul>
+<h3 id="标记-整理算法："><a href="#标记-整理算法：" class="headerlink" title="标记-整理算法："></a>标记-整理算法：</h3><p>标记-整理（Mark-and-Compact）算法是根据老年代的特点提出的一种标记算法，标记过程仍然与“标记-清除”算法一样，但后续步骤不是直接对可回收对象回收，而是让所有存活的对象向一端移动，然后直接清理掉端边界以外的内存。</p>
+<p><img src="https://oss.javaguide.cn/github/javaguide/java/jvm/mark-and-compact-garbage-collection-algorithm.png" alt="01"></p>
+<h3 id="分代收集算法："><a href="#分代收集算法：" class="headerlink" title="分代收集算法："></a>分代收集算法：</h3><p>当前虚拟机的垃圾收集都采用分代收集算法，这种算法没有什么新的思想，只是根据对象存活周期的不同将内存分为几块。一般将 Java 堆分为新生代和老年代，这样我们就可以根据各个年代的特点选择合适的垃圾收集算法。</p>
+<p>比如在新生代中，每次收集都会有大量对象死去，所以可以选择“复制”算法，只需要付出少量对象的复制成本就可以完成每次垃圾收集。而老年代的对象存活几率是比较高的，而且没有额外的空间对它进行分配担保，所以我们必须选择“标记-清除”或“标记-整理”算法进行垃圾收集</p>
+<h2 id="垃圾回收器"><a href="#垃圾回收器" class="headerlink" title="垃圾回收器"></a>垃圾回收器</h2><p>上面的收集方法就是内存回收的方法论，垃圾回收器就是内存回收的具体实现</p>
+<h3 id="Serial收集器-也有老年代版本"><a href="#Serial收集器-也有老年代版本" class="headerlink" title="Serial收集器(也有老年代版本)"></a>Serial收集器(也有老年代版本)</h3><p>串行收集器：单线程</p>
+<p>这个单线程不仅是线程单一–只使用一条垃圾收集线程去完成垃圾收集工作</p>
+<p>更重要的是他在进行垃圾收集工作时，其他工作线程都完全暂停，直到他收集结束</p>
+<p><strong>Stop The World！！！</strong></p>
+<p><strong>新生代采用标记-复制算法，老年代采用标记-整理算法。</strong></p>
+<p><img src="https://oss.javaguide.cn/github/javaguide/java/jvm/serial-garbage-collector.png"></p>
+<p>虚拟机的设计者们当然知道 Stop The World 带来的不良用户体验，所以在后续的垃圾收集器设计中停顿时间在不断缩短（仍然还有停顿，寻找最优秀的垃圾收集器的过程仍然在继续）。</p>
+<p>但是 Serial 收集器有没有优于其他垃圾收集器的地方呢？当然有，它<strong>简单而高效（与其他收集器的单线程相比）</strong>。Serial 收集器由于没有线程交互的开销，自然可以获得很高的单线程收集效率。Serial 收集器对于运行在 Client 模式下的虚拟机来说是个不错的选择。</p>
+<h3 id="ParNew收集器"><a href="#ParNew收集器" class="headerlink" title="ParNew收集器"></a>ParNew收集器</h3><p> Serial 收集器的多线程版本，除了使用多线程进行垃圾收集外，其余行为（控制参数、收集算法、回收策略等等）和 Serial 收集器完全一样。</p>
+<p><strong>新生代采用标记-复制算法，老年代采用标记-整理算法。</strong></p>
+<p><img src="https://oss.javaguide.cn/github/javaguide/java/jvm/parnew-garbage-collector.png" alt="22"></p>
+<p>它是许多运行在 Server 模式下的虚拟机的首要选择，除了 Serial 收集器外，只有它能与 CMS 收集器（真正意义上的并发收集器，后面会介绍到）配合工作。</p>
+<h4 id="并行和并发"><a href="#并行和并发" class="headerlink" title="并行和并发"></a>并行和并发</h4><p><strong>并行（Parallel）</strong>：指多条垃圾收集线程并行工作，但此时用户线程仍然处于等待状态。</p>
+<p><strong>并发（Concurrent）</strong>：指用户线程与垃圾收集线程同时执行（但不一定是并行，可能会交替执行），用户程序在继续运行，而垃圾收集器运行在另一个 CPU 上</p>
+<h3 id="Parallel-Scavenge收集器-也有老年代版本"><a href="#Parallel-Scavenge收集器-也有老年代版本" class="headerlink" title="Parallel Scavenge收集器(也有老年代版本)"></a>Parallel Scavenge收集器(也有老年代版本)</h3><p>使用标记-复制算法的多线程收集器，它看上去几乎和 ParNew 都一样。 <strong>那么它有什么特别之处呢？</strong></p>
+<p>这个收集器的关注点是吞吐量</p>
+<p>CMS等收集器的关注点更多的是用户线程的停顿时间</p>
+<p>Parallel Scavenge 收集器提供了很多参数供用户找到最合适的停顿时间或最大吞吐量，如果对于收集器运作不太了解，手工优化存在困难的时候，使用 Parallel Scavenge 收集器配合自适应调节策略，把内存管理优化交给虚拟机去完成也是一个不错的选择。</p>
+<p><strong>新生代采用标记-复制算法，老年代采用标记-整理算法。</strong></p>
+<p><img src="https://oss.javaguide.cn/github/javaguide/java/jvm/parallel-scavenge-garbage-collector.png" alt="31"></p>
+<h3 id="CMS"><a href="#CMS" class="headerlink" title="CMS"></a>CMS</h3><p><strong>CMS（Concurrent Mark Sweep）收集器是一种以获取最短回收停顿时间为目标的收集器。它非常符合在注重用户体验的应用上使用。</strong></p>
+<p><strong>CMS（Concurrent Mark Sweep）收集器是 HotSpot 虚拟机第一款真正意义上的并发收集器，它第一次实现了让垃圾收集线程与用户线程（基本上）同时工作。</strong></p>
+<p>从名字中的<strong>Mark Sweep</strong>这两个词可以看出，CMS 收集器是一种 <strong>“标记-清除”算法</strong>实现的，它的运作过程相比于前面几种垃圾收集器来说更加复杂一些。整个过程分为四个步骤：</p>
+<ul>
+<li><strong>初始标记：</strong> 短暂停顿，标记直接与 root 相连的对象（根对象）；</li>
+<li><strong>并发标记：</strong> 同时开启 GC 和用户线程，用一个闭包结构去记录可达对象。但在这个阶段结束，这个闭包结构并不能保证包含当前所有的可达对象。因为用户线程可能会不断的更新引用域，所以 GC 线程无法保证可达性分析的实时性。所以这个算法里会跟踪记录这些发生引用更新的地方。</li>
+<li><strong>重新标记：</strong> 重新标记阶段就是为了修正并发标记期间因为用户程序继续运行而导致标记产生变动的那一部分对象的标记记录，这个阶段的停顿时间一般会比初始标记阶段的时间稍长，远远比并发标记阶段时间短</li>
+<li><strong>并发清除：</strong> 开启用户线程，同时 GC 线程开始对未标记的区域做清扫。</li>
+</ul>
+<p><img src="https://oss.javaguide.cn/github/javaguide/java/jvm/cms-garbage-collector.png" alt="sda"></p>
+<p>从它的名字就可以看出它是一款优秀的垃圾收集器，主要优点：<strong>并发收集、低停顿</strong>。但是它有下面三个明显的缺点：</p>
+<ul>
+<li><strong>对 CPU 资源敏感；</strong></li>
+<li><strong>无法处理浮动垃圾；</strong></li>
+<li><strong>它使用的回收算法-“标记-清除”算法会导致收集结束时会有大量空间碎片产生。</strong></li>
+</ul>
+<p><strong>CMS 垃圾回收器在 Java 9 中已经被标记为过时(deprecated)，并在 Java 14 中被移除。</strong></p>
+<h3 id="G1"><a href="#G1" class="headerlink" title="G1"></a>G1</h3><p><strong>G1 (Garbage-First) 是一款面向服务器的垃圾收集器,主要针对配备多颗处理器及大容量内存的机器. 以极高概率满足 GC 停顿时间要求的同时,还具备高吞吐量性能特征。</strong></p>
+<ul>
+<li><p>并行与并发：可以利用多核硬件优势，来缩短stw时间。部分其他收集器原本还需要暂停java线程执行的GC动作，G1收集器仍然可以通过并发的方式让java程序继续执行</p>
+</li>
+<li><p>分代收集：保留了分代概念。尽管他不需要其他收集器配合就能管理整个GC堆</p>
+</li>
+<li><p>空间整合：与 CMS 的“标记-清除”算法不同，G1 从整体来看是基于“标记-整理”算法实现的收集器；从局部上来看是基于“标记-复制”算法实现的。</p>
+</li>
+<li><p>可以预测的停顿：这是 G1 相对于 CMS 的另一个大优势，降低停顿时间是 G1 和 CMS 共同的关注点，但 G1 除了追求低停顿外，还能建立可预测的停顿时间模型，能让使用者明确指定在一个长度为 M 毫秒的时间片段内，消耗在垃圾收集上的时间不得超过 N 毫秒。</p>
+</li>
+</ul>
+<hr>
+<p>G1 收集器的运作大致分为以下几个步骤：</p>
+<ul>
+<li><strong>初始标记</strong>： 短暂停顿（Stop-The-World，STW），标记从 GC Roots 可直接引用的对象，即标记所有直接可达的活跃对象</li>
+<li><strong>并发标记</strong>：与应用并发运行，标记所有可达对象。 这一阶段可能持续较长时间，取决于堆的大小和对象的数量。</li>
+<li><strong>最终标记</strong>： 短暂停顿（STW），处理并发标记阶段结束后残留的少量未处理的引用变更。</li>
+<li><strong>筛选回收</strong>：根据标记结果，选择回收价值高的区域，复制存活对象到新区域，回收旧区域内存。这一阶段包含一个或多个停顿（STW），具体取决于回收的复杂度。</li>
+</ul>
+<p><img src="https://oss.javaguide.cn/github/javaguide/java/jvm/g1-garbage-collector.png" alt="dad"></p>
+<p><strong>G1 收集器在后台维护了一个优先列表，每次根据允许的收集时间，优先选择回收价值最大的 Region(这也就是它的名字 Garbage-First 的由来)</strong> 。这种使用 Region 划分内存空间以及有优先级的区域回收方式，保证了 G1 收集器在有限时间内可以尽可能高的收集效率（把内存化整为零）。</p>
+<p><strong>从 JDK9 开始，G1 垃圾收集器成为了默认的垃圾收集器。</strong></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Allimac</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2025/01/31/JVM-3/">http://example.com/2025/01/31/JVM-3/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">AllimacBlog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/JVM/">JVM</a></div><div class="post-share"><div class="social-share" data-image="https://s21.ax1x.com/2025/01/31/pEVzwqI.jpg" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2025/01/29/%E8%93%9D%E6%A1%A5-2/" title="蓝桥-2"><img class="cover" src="https://s21.ax1x.com/2025/01/29/pEVw73q.jpg" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">蓝桥-2</div></div><div class="info-2"><div class="info-item-1">删除链表元素 给你一个链表的头节点 head 和一个整数 val ，请你删除链表中所有满足 Node.val == val 的节点，并返回 新的头节点 。 示例 1：  12输入：head = [1,2,6,3,4,5,6], val = 6输出：[1,2,3,4,5]  示例 2： 12输入：head = [], val = 1输出：[]  示例 3： 12输入：head = [7,7,7,7], val = 7输出：[]  提示：  列表中的节点数目在范围 [0, 104] 内 1 &lt;= Node.val &lt;= 50 0 &lt;= val &lt;= 50   代码123456789101112131415161718192021222324252627282930/** * Definition for singly-linked list. * public class ListNode &#123; *     int val; *     ListNode next; *     ListNode() &#123;&#125; *    ...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/01/25/JVM-1/" title="JVM-1"><img class="cover" src="https://s21.ax1x.com/2025/01/25/pEEwqQf.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-25</div><div class="info-item-2">JVM-1</div></div><div class="info-2"><div class="info-item-1">初步认识jvm</div></div></div></a><a class="pagination-related" href="/2025/01/26/JVM-2/" title="JVM-2"><img class="cover" src="https://s21.ax1x.com/2025/01/25/pEEwqQf.jpg" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-01-26</div><div class="info-item-2">JVM-2</div></div><div class="info-2"><div class="info-item-1">JVM内存管理</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Allimac</div><div class="author-info-description">华丽的仓库存放着我简陋的思想</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">9</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">7</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">4</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/AillemaCc"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/AillemaCc" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="http://www.swindle.icu/#/Home" target="_blank" title="曾经的博客"><i class="fas fa-envelope" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">这里是小梦一场的大床</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#JVM%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E6%9C%BA%E5%88%B6"><span class="toc-number">1.</span> <span class="toc-text">JVM垃圾回收机制</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9E%83%E5%9C%BE%E7%9A%84%E5%88%A4%E5%AE%9A"><span class="toc-number">1.1.</span> <span class="toc-text">垃圾的判定</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%BC%95%E7%94%A8%E8%AE%A1%E6%95%B0%E6%B3%95"><span class="toc-number">1.1.1.</span> <span class="toc-text">引用计数法</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%8F%AF%E8%BE%BE%E6%80%A7%E5%88%86%E6%9E%90"><span class="toc-number">1.1.2.</span> <span class="toc-text">可达性分析</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9E%83%E5%9C%BE%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95"><span class="toc-number">1.2.</span> <span class="toc-text">垃圾收集算法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%87%E8%AE%B0-%E6%B8%85%E9%99%A4%E7%AE%97%E6%B3%95%EF%BC%9A"><span class="toc-number">1.2.1.</span> <span class="toc-text">标记-清除算法：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%A4%8D%E5%88%B6%E7%AE%97%E6%B3%95%EF%BC%9A"><span class="toc-number">1.2.2.</span> <span class="toc-text">复制算法：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%87%E8%AE%B0-%E6%95%B4%E7%90%86%E7%AE%97%E6%B3%95%EF%BC%9A"><span class="toc-number">1.2.3.</span> <span class="toc-text">标记-整理算法：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%88%86%E4%BB%A3%E6%94%B6%E9%9B%86%E7%AE%97%E6%B3%95%EF%BC%9A"><span class="toc-number">1.2.4.</span> <span class="toc-text">分代收集算法：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%9E%83%E5%9C%BE%E5%9B%9E%E6%94%B6%E5%99%A8"><span class="toc-number">1.3.</span> <span class="toc-text">垃圾回收器</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Serial%E6%94%B6%E9%9B%86%E5%99%A8-%E4%B9%9F%E6%9C%89%E8%80%81%E5%B9%B4%E4%BB%A3%E7%89%88%E6%9C%AC"><span class="toc-number">1.3.1.</span> <span class="toc-text">Serial收集器(也有老年代版本)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ParNew%E6%94%B6%E9%9B%86%E5%99%A8"><span class="toc-number">1.3.2.</span> <span class="toc-text">ParNew收集器</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%B9%B6%E8%A1%8C%E5%92%8C%E5%B9%B6%E5%8F%91"><span class="toc-number">1.3.2.1.</span> <span class="toc-text">并行和并发</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Parallel-Scavenge%E6%94%B6%E9%9B%86%E5%99%A8-%E4%B9%9F%E6%9C%89%E8%80%81%E5%B9%B4%E4%BB%A3%E7%89%88%E6%9C%AC"><span class="toc-number">1.3.3.</span> <span class="toc-text">Parallel Scavenge收集器(也有老年代版本)</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#CMS"><span class="toc-number">1.3.4.</span> <span class="toc-text">CMS</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#G1"><span class="toc-number">1.3.5.</span> <span class="toc-text">G1</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/01/31/JVM-3/" title="JVM-3"><img src="https://s21.ax1x.com/2025/01/31/pEVzwqI.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="JVM-3"/></a><div class="content"><a class="title" href="/2025/01/31/JVM-3/" title="JVM-3">JVM-3</a><time datetime="2025-01-31T03:18:42.000Z" title="发表于 2025-01-31 11:18:42">2025-01-31</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/01/29/%E8%93%9D%E6%A1%A5-2/" title="蓝桥-2"><img src="https://s21.ax1x.com/2025/01/29/pEVw73q.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="蓝桥-2"/></a><div class="content"><a class="title" href="/2025/01/29/%E8%93%9D%E6%A1%A5-2/" title="蓝桥-2">蓝桥-2</a><time datetime="2025-01-29T06:15:04.000Z" title="发表于 2025-01-29 14:15:04">2025-01-29</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/01/26/JVM-2/" title="JVM-2"><img src="https://s21.ax1x.com/2025/01/25/pEEwqQf.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="JVM-2"/></a><div class="content"><a class="title" href="/2025/01/26/JVM-2/" title="JVM-2">JVM-2</a><time datetime="2025-01-26T15:34:15.000Z" title="发表于 2025-01-26 23:34:15">2025-01-26</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/01/25/JVM-1/" title="JVM-1"><img src="https://s21.ax1x.com/2025/01/25/pEEwqQf.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="JVM-1"/></a><div class="content"><a class="title" href="/2025/01/25/JVM-1/" title="JVM-1">JVM-1</a><time datetime="2025-01-25T13:10:12.000Z" title="发表于 2025-01-25 21:10:12">2025-01-25</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/01/25/%E8%93%9D%E6%A1%A5-1/" title="蓝桥-1"><img src="https://s21.ax1x.com/2025/01/24/pEEKSjx.jpg" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="蓝桥-1"/></a><div class="content"><a class="title" href="/2025/01/25/%E8%93%9D%E6%A1%A5-1/" title="蓝桥-1">蓝桥-1</a><time datetime="2025-01-25T05:38:32.000Z" title="发表于 2025-01-25 13:38:32">2025-01-25</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2024 - 2025 By Allimac</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
