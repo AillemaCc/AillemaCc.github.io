@@ -1,0 +1,405 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>A-First-Look-At-RocketMQ | AllimacBlog</title><meta name="author" content="Allimac"><meta name="copyright" content="Allimac"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="初探RocketMQ，一些关于RocketMQ的问题">
+<meta property="og:type" content="article">
+<meta property="og:title" content="A-First-Look-At-RocketMQ">
+<meta property="og:url" content="http://example.com/2025/03/15/A-First-Look-At-RocketMQ/index.html">
+<meta property="og:site_name" content="AllimacBlog">
+<meta property="og:description" content="初探RocketMQ，一些关于RocketMQ的问题">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://s21.ax1x.com/2025/03/15/pEaULE8.png">
+<meta property="article:published_time" content="2025-03-15T05:13:11.000Z">
+<meta property="article:modified_time" content="2025-03-15T05:15:15.906Z">
+<meta property="article:author" content="Allimac">
+<meta property="article:tag" content="消息队列">
+<meta property="article:tag" content="八股">
+<meta property="article:tag" content="RocketMQ">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://s21.ax1x.com/2025/03/15/pEaULE8.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "A-First-Look-At-RocketMQ",
+  "url": "http://example.com/2025/03/15/A-First-Look-At-RocketMQ/",
+  "image": "https://s21.ax1x.com/2025/03/15/pEaULE8.png",
+  "datePublished": "2025-03-15T05:13:11.000Z",
+  "dateModified": "2025-03-15T05:15:15.906Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Allimac",
+      "url": "http://example.com/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/faviconcute.png"><link rel="canonical" href="http://example.com/2025/03/15/A-First-Look-At-RocketMQ/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'A-First-Look-At-RocketMQ',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">43</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">36</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 链接</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></li><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></li></ul></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(https://s21.ax1x.com/2025/03/15/pEaULE8.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">AllimacBlog</span></a><a class="nav-page-title" href="/"><span class="site-name">A-First-Look-At-RocketMQ</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 链接</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></li><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></li></ul></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">A-First-Look-At-RocketMQ</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-03-15T05:13:11.000Z" title="发表于 2025-03-15 13:13:11">2025-03-15</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-03-15T05:15:15.906Z" title="更新于 2025-03-15 13:15:15">2025-03-15</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%8A%80%E6%9C%AF/">技术</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">5.7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>17分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="使用场景"><a href="#使用场景" class="headerlink" title="使用场景"></a>使用场景</h1><h2 id="异步解耦"><a href="#异步解耦" class="headerlink" title="异步解耦"></a>异步解耦</h2><p>最常见的一个场景是用户注册后，需要发送注册邮件和短信通知，以告知用户注册成功。传统的做法有以下两种：</p>
+<p><strong>串行方式</strong></p>
+<p>数据流动如下所述：</p>
+<ol>
+<li>您在注册页面填写账号和密码并提交注册信息，这些注册信息首先会被写入注册系统。</li>
+<li>注册信息写入注册系统成功后，再发送请求至邮件通知系统。邮件通知系统收到请求后向用户发送邮件通知。</li>
+<li>邮件通知系统接收注册系统请求后再向下游的短信通知系统发送请求。短信通知系统收到请求后向用户发送短信通知。</li>
+</ol>
+<p>以上三个任务全部完成后，才返回注册结果到客户端，用户才能使用账号登录。</p>
+<p>假设每个任务耗时分别为50ms，则用户需要在注册页面等待总共150ms才能登录。</p>
+<p><strong>并行方式</strong></p>
+<p>数据流动如下所述：</p>
+<ol>
+<li>用户在注册页面填写账号和密码并提交注册信息，这些注册信息首先会被写入注册系统。</li>
+<li>注册信息写入注册系统成功后，再<strong>同时</strong>发送请求至邮件和短信通知系统。邮件和短信通知系统收到请求后分别向用户发送邮件和短信通知。</li>
+</ol>
+<p>以上两个任务全部完成后，才返回注册结果到客户端，用户才能使用账号登录。</p>
+<p>假设每个任务耗时分别为50ms，其中，邮件和短信通知并行完成，则用户需要在注册页面等待总共100ms才能登录。</p>
+<p><strong>异步解耦</strong></p>
+<p>对于用户来说，注册功能实际只需要注册系统存储用户的账户信息后，该用户便可以登录，后续的注册短信和邮件不是即时需要关注的步骤。</p>
+<p>对于注册系统而言，发送注册成功的短信和邮件通知并不一定要绑定在一起同步完成，所以实际当数据写入注册系统后，注册系统就可以把其他的操作放入对应的 RocketMQ 中然后马上返回用户结果，由 RocketMQ 异步地进行这些操作</p>
+<p>数据流动如下所述：</p>
+<ol>
+<li>用户在注册页面填写账号和密码并提交注册信息，这些注册信息首先会被写入注册系统。</li>
+<li>注册信息写入注册系统成功后，再发送消息至 RocketMQ。 RocketMQ 会马上返回响应给注册系统，注册完成。用户可立即登录。</li>
+<li>下游的邮件和短信通知系统订阅 RocketMQ 的此类注册请求消息，即可向用户发送邮件和短信通知，完成所有的注册流程。</li>
+</ol>
+<p>用户只需在注册页面等待注册数据写入注册系统和 RocketMQ 的时间，即等待55ms即可登录</p>
+<p>至于解耦的部分，我们可以再举一个例子：</p>
+<p>一个简单的用户下单后根据支付金额增加用户积分的场景，传统模式下需要订单模块调用积分模块接口，这样的话订单模块与积分模块就形成了系统耦合，一旦积分模块有修改或出现异常就会影响订单模块功能。引入消息队列方案后, 用户下单成功后，将消息写入消息队列就可以了。积分模块只需要订阅下单消息，从消息队列中获取数据进行消费，这样订单模块和积分模块都只要专注实现自己的功能实现，实现解耦。</p>
+<h2 id="削峰填谷"><a href="#削峰填谷" class="headerlink" title="削峰填谷"></a>削峰填谷</h2><p>流量削峰也是 RocketMQ 的常用场景，一般在秒杀或团队抢购活动中使用广泛。</p>
+<p>在秒杀或团队抢购活动中，由于用户请求量较大，导致流量暴增，秒杀的应用在处理如此大量的访问流量后，下游的通知系统无法承载海量的调用量，甚至会导致系统崩溃等问题而发生漏通知的情况。为解决这些问题，可在应用和下游通知系统之间加入 RocketMQ。</p>
+<p>秒杀处理流程如下所述：</p>
+<ol>
+<li>用户发起海量秒杀请求到秒杀业务处理系统。</li>
+<li>秒杀处理系统按照秒杀处理逻辑将满足秒杀条件的请求发送 RocketMQ。</li>
+<li>下游的通知系统订阅 RocketMQ 的秒杀相关消息，再将秒杀成功的消息发送到相应用户。</li>
+<li>用户收到秒杀成功的通知</li>
+</ol>
+<blockquote>
+<h3 id="1-用户发起海量秒杀请求到秒杀业务处理系统"><a href="#1-用户发起海量秒杀请求到秒杀业务处理系统" class="headerlink" title="1. 用户发起海量秒杀请求到秒杀业务处理系统"></a>1. 用户发起海量秒杀请求到秒杀业务处理系统</h3><p>在这个阶段，大量用户几乎同时发起请求，希望参与秒杀活动。这些请求包含了用户的个人信息、所选商品信息等。秒杀业务处理系统需要设计得足够健壮以应对高并发的请求。通常会采用限流、排队等机制来减轻服务器压力，并确保系统能够在高峰流量下稳定运行。</p>
+<h3 id="2-秒杀处理系统按照秒杀处理逻辑将满足秒杀条件的请求发送-RocketMQ"><a href="#2-秒杀处理系统按照秒杀处理逻辑将满足秒杀条件的请求发送-RocketMQ" class="headerlink" title="2. 秒杀处理系统按照秒杀处理逻辑将满足秒杀条件的请求发送 RocketMQ"></a>2. 秒杀处理系统按照秒杀处理逻辑将满足秒杀条件的请求发送 RocketMQ</h3><p>一旦请求被接收，秒杀处理系统就会根据预设的规则（如库存量、秒杀时间窗口等）对请求进行筛选和处理。对于符合条件的请求，系统会生成相应的消息并将其发送至 RocketMQ。这里的关键是使用 RocketMQ 来作为消息中间件，它能够有效地缓冲高峰期的流量冲击，防止下游系统因瞬间接受过多请求而崩溃。</p>
+<h3 id="3-下游的通知系统订阅-RocketMQ-的秒杀相关消息，再将秒杀成功的消息发送到相应用户"><a href="#3-下游的通知系统订阅-RocketMQ-的秒杀相关消息，再将秒杀成功的消息发送到相应用户" class="headerlink" title="3. 下游的通知系统订阅 RocketMQ 的秒杀相关消息，再将秒杀成功的消息发送到相应用户"></a>3. 下游的通知系统订阅 RocketMQ 的秒杀相关消息，再将秒杀成功的消息发送到相应用户</h3><p>RocketMQ 在这里充当了消息队列的角色，它可以保证消息的顺序性和可靠性。通知系统通过订阅特定主题的消息，获取秒杀成功的信息。这一过程允许通知系统按照自己的能力逐步处理秒杀成功的通知任务，而不是在秒杀发生的瞬间尝试处理所有通知，从而避免了系统过载的风险。</p>
+<h3 id="4-用户收到秒杀成功的通知"><a href="#4-用户收到秒杀成功的通知" class="headerlink" title="4. 用户收到秒杀成功的通知"></a>4. 用户收到秒杀成功的通知</h3><p>最终，当通知系统处理完秒杀成功消息后，用户将会接收到他们是否秒杀成功的通知。这可以通过短信、应用内消息或者电子邮件等方式完成。重要的是，这种方式确保了即使面对极高的流量峰值，也能有序地向用户传达结果，提供良好的用户体验。</p>
+</blockquote>
+<p>消息队列可以实现消息的缓存，并且有序的分发。削弱峰值，在空闲时也不会造成资源浪费</p>
+<h2 id="顺序消息"><a href="#顺序消息" class="headerlink" title="顺序消息"></a>顺序消息</h2><p>顺序消息是 RocketMQ 提供的一种对消息发送和消费顺序有严格要求的消息。</p>
+<p>对于一个指定的 Topic，消息严格按照先进先出（FIFO）的原则进行消息发布和消费，即先发布的消息先消费，后发布的消息后消费。</p>
+<p>顺序消息分为分区顺序消息和全局顺序消息。</p>
+<ul>
+<li>分区顺序消息：对于指定的一个 Topic，所有消息根据 Sharding Key 进行区块分区，同一个分区内的消息按照严格的先进先出（FIFO）原则进行发布和消费。同一分区内的消息保证顺序，不同分区之间的消息顺序不做要求。<ul>
+<li>适用场景：适用于性能要求高，以 Sharding Key 作为分区字段，在同一个区块中严格地按照先进先出（FIFO）原则进行消息发布和消费的场景。</li>
+<li>示例<ul>
+<li>用户注册需要发送验证码，以用户 ID 作为 Sharding Key，那么同一个用户发送的消息都会按照发布的先后顺序来消费。</li>
+<li>电商的订单创建，以订单 ID 作为 Sharding Key，那么同一个订单相关的创建订单消息、订单支付消息、订单退款消息、订单物流消息都会按照发布的先后顺序来消费。</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>全局顺序消息：对于指定的一个Topic，所有消息按照严格的先入先出（FIFO）的顺序来发布和消费。<ul>
+<li>适用场景：适用于性能要求不高，所有的消息严格按照 FIFO 原则来发布和消费的场景。</li>
+<li>示例：在证券处理中，以人民币兑换美元为 Topic，在价格相同的情况下，先出价者优先处理，则可以按照 FIFO 的方式发布和消费全局顺序消息。</li>
+</ul>
+</li>
+</ul>
+<p>全局顺序消息实际上是一种特殊的分区顺序消息，即 Topic 中只有一个分区，因此全局顺序和分区顺序的实现原理相同。因为分区顺序消息有多个分区，所以分区顺序消息比全局顺序消息的并发度和性能更高。</p>
+<p><a target="_blank" rel="noopener" href="https://imgse.com/i/pEU6XuQ"><img src="https://s21.ax1x.com/2025/03/13/pEU6XuQ.png" alt="pEU6XuQ.png"></a></p>
+<h2 id="分布式模式缓存同步"><a href="#分布式模式缓存同步" class="headerlink" title="分布式模式缓存同步"></a>分布式模式缓存同步</h2><p>双十一大促时，各个分会场会有琳琅满目的商品，每件商品的价格都会实时变化。使用缓存技术也无法满足对商品价格的访问需求，缓存服务器网卡满载。访问较多次商品价格查询影响会场页面的打开速度。</p>
+<p>此时需要提供一种广播机制，一条消息本来只可以被集群的一台机器消费，如果使用 RocketMQ 的广播消费模式，那么这条消息会被所有节点消费一次，相当于把价格信息同步到需要的每台机器上，取代缓存的作用。</p>
+<p><a target="_blank" rel="noopener" href="https://imgse.com/i/pEU6vHs"><img src="https://s21.ax1x.com/2025/03/13/pEU6vHs.png" alt="pEU6vHs.png"></a></p>
+<h2 id="分布式定时-延时调度"><a href="#分布式定时-延时调度" class="headerlink" title="分布式定时&#x2F;延时调度"></a>分布式定时&#x2F;延时调度</h2><p>RocketMQ 提供精确度到秒级的分布式定时消息能力（5.0架构后），可广泛应用于订单超时中心处理、分布式延时调度系统等场景。</p>
+<p>使用 RocketMQ 定时消息有如下优势：</p>
+<ul>
+<li>定时精度高、开发门槛低：消息定时时间不存在阶梯间隔，可以轻松实现任意精度事件触发，无需业务去重。</li>
+<li>高性能、可扩展：传统的定时实现方案较为复杂，需要进行数据库扫描，容易遇到性能瓶颈的问题，RocketMQ 可以基于定时消息特性完成事件驱动，实现百万级消息 TPS 能力。</li>
+</ul>
+<blockquote>
+<p>RocketMQ 支持定时消息（Scheduled Message），允许用户设定消息在未来某个时间点被消费，这对于需要延迟处理的场景非常有用。结合事件驱动模式和 RocketMQ 的高吞吐能力，可以构建出高效的消息处理系统。以下是基于定时消息特性完成事件驱动的具体执行流程：</p>
+<h3 id="1-消息生产阶段"><a href="#1-消息生产阶段" class="headerlink" title="1. 消息生产阶段"></a>1. 消息生产阶段</h3><ul>
+<li><p><strong>创建定时消息</strong>：在秒杀活动等场景中，如果某些操作需要延迟执行（如延迟通知、定时任务触发等），可以通过 RocketMQ 的定时消息功能来实现。生产者在发送消息时，设置 <code>messageDelayTimeLevel</code> 或者使用特定的时间戳来定义消息的延迟时间。</p>
+</li>
+<li><p><strong>发送至 RocketMQ</strong>：将这些定时消息发送到 RocketMQ 的指定 Topic 中。RocketMQ 会根据配置好的延迟级别或时间戳存储这些消息，并不会立即投递给消费者。</p>
+</li>
+</ul>
+<h3 id="2-消息存储与调度"><a href="#2-消息存储与调度" class="headerlink" title="2. 消息存储与调度"></a>2. 消息存储与调度</h3><ul>
+<li><p><strong>消息排序与存储</strong>：RocketMQ 内部会对定时消息进行排序并存储。它支持多种延迟级别，默认提供了一些预设的延迟时间选项（例如 1s, 5s, 10s 等）。也可以通过自定义的方式设定更精确的延迟时间。</p>
+</li>
+<li><p><strong>定时调度</strong>：RocketMQ 定期检查是否有到达预定时间的消息，一旦发现有满足条件的消息，就会将其转换为普通消息，并放入待消费队列中准备投递给消费者。</p>
+</li>
+</ul>
+<h3 id="3-消费者处理阶段"><a href="#3-消费者处理阶段" class="headerlink" title="3. 消费者处理阶段"></a>3. 消费者处理阶段</h3><ul>
+<li><p><strong>订阅与监听</strong>：消费者应用需要提前订阅对应的 Topic，并且持续监听该 Topic 下的新消息。当定时消息变为可消费状态后，RocketMQ 将其推送给消费者。</p>
+</li>
+<li><p><strong>业务逻辑处理</strong>：消费者接收到消息后，根据消息内容执行相应的业务逻辑，比如更新库存、发送通知等。由于 RocketMQ 支持高并发和高性能的消息处理能力，它可以轻松应对百万级别的 TPS（每秒事务处理量）需求。</p>
+</li>
+</ul>
+<h3 id="4-结果反馈与监控"><a href="#4-结果反馈与监控" class="headerlink" title="4. 结果反馈与监控"></a>4. 结果反馈与监控</h3><ul>
+<li><p><strong>结果记录</strong>：消费者处理完消息后，可以根据实际情况记录处理结果，包括成功或失败的状态。</p>
+</li>
+<li><p><strong>日志与监控</strong>：整个过程应配合完善的日志记录和监控机制，以便及时发现并解决问题。RocketMQ 提供了丰富的监控指标和报警功能，可以帮助运维人员更好地管理和维护系统。</p>
+</li>
+</ul>
+<p>通过以上步骤，利用 RocketMQ 的定时消息特性和强大的消息处理能力，可以有效地实现事件驱动架构下的复杂业务逻辑处理，同时确保系统的高性能和可靠性。这种设计特别适合于需要精确控制消息处理时机的应用场景，如电商促销、预约服务等。</p>
+</blockquote>
+<h1 id="基础概念"><a href="#基础概念" class="headerlink" title="基础概念"></a>基础概念</h1><h2 id="主题-Topic"><a href="#主题-Topic" class="headerlink" title="主题 Topic"></a>主题 Topic</h2><p>主题是 Apache RocketMQ 中消息传输和存储的顶层容器，用于标识同一类业务逻辑的消息。 主题的作用主要如下：</p>
+<ul>
+<li><strong>定义数据的分类隔离：</strong> 在 Apache RocketMQ 的方案设计中，建议将不同业务类型的数据拆分到不同的主题中管理，通过主题实现存储的隔离性和订阅隔离性。</li>
+<li><strong>定义数据的身份和权限：</strong> Apache RocketMQ 的消息本身是匿名无身份的，同一分类的消息使用相同的主题来做身份识别和权限管理。</li>
+</ul>
+<h2 id="队列-Queue"><a href="#队列-Queue" class="headerlink" title="队列 Queue"></a>队列 Queue</h2><p>队列是 Apache RocketMQ 中消息存储和传输的实际容器，也是 Apache RocketMQ 消息的最小存储单元。 Apache RocketMQ 的所有主题都是由多个队列组成，以此实现队列数量的水平拆分和队列内部的流式存储。</p>
+<p><a target="_blank" rel="noopener" href="https://imgse.com/i/pEUcAu4"><img src="https://s21.ax1x.com/2025/03/13/pEUcAu4.png" alt="pEUcAu4.png"></a></p>
+<h2 id="消息-Message"><a href="#消息-Message" class="headerlink" title="消息 Message"></a>消息 Message</h2><p>消息是 Apache RocketMQ 中的最小数据传输单元。生产者将业务数据的负载和拓展属性包装成消息发送到 Apache RocketMQ 服务端，服务端按照相关语义将消息投递到消费端进行消费。</p>
+<h2 id="生产者-Producer"><a href="#生产者-Producer" class="headerlink" title="生产者 Producer"></a>生产者 Producer</h2><p>发布消息的角色。Producer 通过 MQ 的负载均衡模块选择相应的 Broker 集群队列进行消息投递，投递的过程支持快速失败和重试。</p>
+<h2 id="消费者-Consumer"><a href="#消费者-Consumer" class="headerlink" title="消费者 Consumer"></a>消费者 Consumer</h2><p>消息消费的角色</p>
+<p>支持以pull push两种方式 对消息进行消费</p>
+<p>支持集群模式和广播方式的消费</p>
+<p>提供实时消息订阅机制</p>
+<blockquote>
+<h3 id="集群消费模式"><a href="#集群消费模式" class="headerlink" title="集群消费模式"></a>集群消费模式</h3><p><strong>集群消费模式</strong>是RocketMQ默认的消息消费模式。在此模式下，每个消费者实例（Consumer Instance）属于一个特定的消费组（Consumer Group）。当一条消息被发送到某个主题（Topic），RocketMQ会确保这条消息只会被该消费组中的一个消费者实例处理。这意味着即使有多个消费者实例订阅了相同的消息主题，在集群模式下，每条消息只会被其中一个实例消费一次，从而避免重复处理。</p>
+<ul>
+<li><strong>适用场景</strong>：适合需要保证消息仅被处理一次的场景，如订单处理系统、支付系统等。</li>
+<li><strong>优点</strong>：能够实现负载均衡，提高系统的吞吐量和可用性。</li>
+</ul>
+<h3 id="广播消费模式"><a href="#广播消费模式" class="headerlink" title="广播消费模式"></a>广播消费模式</h3><p><strong>广播消费模式</strong>允许一个消费组内的所有消费者实例都能接收到并处理同一条消息。与集群消费模式不同，这种模式不会对消息进行分发控制，而是将消息复制多份，分别发送给该消费组下的每一个消费者实例。因此，每条消息都会被消费组内的每个消费者实例处理一次。</p>
+<ul>
+<li><strong>适用场景</strong>：适合需要所有消费者实例都处理同一消息的场景，比如状态同步、缓存刷新等。</li>
+<li><strong>优点</strong>：确保消息被所有消费者实例处理，有助于保持数据的一致性和实时性。</li>
+</ul>
+</blockquote>
+<h2 id="名字服务器-NameServer"><a href="#名字服务器-NameServer" class="headerlink" title="名字服务器 NameServer"></a>名字服务器 NameServer</h2><p>NameServer 是一个简单的 Topic 路由注册中心，支持 Topic、Broker 的动态注册与发现。</p>
+<p>主要包括两个功能：</p>
+<ul>
+<li><strong>Broker管理</strong>，NameServer 接受 Broker 集群的注册信息并且保存下来作为路由信息的基本数据。然后提供心跳检测机制，检查 Broker 是否还存活；</li>
+<li><strong>路由信息管理</strong>，每个 NameServer 将保存关于 Broker 集群的整个路由信息和用于客户端查询的队列信息。Producer 和 Consumer 通过 NameServer 就可以知道整个 Broker 集群的路由信息，从而进行消息的投递和消费。</li>
+</ul>
+<p>NameServer 通常会有多个实例部署，各实例间相互不进行信息通讯。Broker 是向每一台 NameServer 注册自己的路由信息，所以每一个  NameServer 实例上面都保存一份完整的路由信息。当某个 NameServer 因某种原因下线了，客户端仍然可以向其它  NameServer 获取路由信息。</p>
+<h2 id="代理服务器-Broker"><a href="#代理服务器-Broker" class="headerlink" title="代理服务器 Broker"></a>代理服务器 Broker</h2><p>Broker主要负责消息的存储、投递和查询以及服务高可用保证。</p>
+<p>NameServer 几乎无状态节点，因此可集群部署，节点之间无任何信息同步。Broker 部署相对复杂。</p>
+<p>在 Master-Slave 架构中，Broker 分为 Master 与 Slave。一个 Master 可以对应多个 Slave，但是一个  Slave 只能对应一个 Master。Master 与 Slave 的对应关系通过指定相同的 BrokerName，不同的 BrokerId  来定义，BrokerId 为 0 表示 Master，非 0 表示 Slave。Master 也可以部署多个。</p>
+<p>部署模型小结：</p>
+<ul>
+<li>每个 <strong>Broker</strong> 与 <strong>NameServer</strong> 集群中的所有节点建立长连接，定时注册 Topic 信息到所有 NameServer。</li>
+<li><strong>Producer</strong> 与 <strong>NameServer</strong> 集群中的其中一个节点建立长连接，定期从 NameServer 获取 Topic 路由信息，并向提供 Topic 服务的 Master 建立长连接，且定时向 Master 发送心跳。Producer 完全无状态。</li>
+<li><strong>Consumer</strong> 与 <strong>NameServer</strong> 集群中的其中一个节点建立长连接，定期从 NameServer 获取 Topic 路由信息，并向提供 Topic 服务的  Master、Slave 建立长连接，且定时向 Master、Slave 发送心跳。Consumer 既可以从 Master 订阅消息，也可以从 Slave 订阅消息。</li>
+</ul>
+<h1 id="工作原理"><a href="#工作原理" class="headerlink" title="工作原理"></a>工作原理</h1><p><a target="_blank" rel="noopener" href="https://imgse.com/i/pEUcd8f"><img src="https://s21.ax1x.com/2025/03/13/pEUcd8f.png" alt="pEUcd8f.png"></a></p>
+<blockquote>
+<p>在RocketMQ中，生产者（Producer）发送的消息会经历一系列步骤，最终存储在Broker中的指定Topic下。以下是消息从生产者发出到最终存储的详细流程：</p>
+<h3 id="消息发送流程"><a href="#消息发送流程" class="headerlink" title="消息发送流程"></a>消息发送流程</h3><ol>
+<li><p><strong>查找路由信息</strong>：</p>
+<ul>
+<li>生产者首先需要知道目标Topic的消息队列分布情况，即每个Topic对应的消息队列位于哪些Broker上。为此，生产者与NameServer集群中的某个节点建立长连接，并定期从NameServer获取最新的路由信息。</li>
+</ul>
+</li>
+<li><p><strong>选择消息队列</strong>：</p>
+<ul>
+<li>根据获取到的路由信息，生产者会选择一个合适的消息队列来发送消息。默认情况下，RocketMQ提供了多种消息队列选择策略，如轮询、哈希等，以实现负载均衡。</li>
+</ul>
+</li>
+<li><p><strong>发送消息到Broker</strong>：</p>
+<ul>
+<li>选定消息队列后，生产者将消息发送到对应的Broker节点（通常是Master Broker）。如果发送失败（例如网络问题或Broker不可用），生产者可能会根据配置尝试重试发送，或者将失败记录下来供后续处理。</li>
+</ul>
+</li>
+<li><p><strong>Broker处理消息</strong>：</p>
+<ul>
+<li>Master Broker接收到消息后，会将其写入本地磁盘上的消息存储文件中。同时，根据配置，Master Broker可能会将消息同步或异步复制给Slave Broker（如果有配置Slave的话），以保证高可用性和数据冗余。</li>
+</ul>
+</li>
+<li><p><strong>确认消息接收</strong>：</p>
+<ul>
+<li>当Broker成功处理消息并持久化后，它会向生产者发送确认响应。生产者收到确认后，就知道该消息已被安全接收和存储。</li>
+</ul>
+</li>
+</ol>
+<h3 id="消费者消费消息"><a href="#消费者消费消息" class="headerlink" title="消费者消费消息"></a>消费者消费消息</h3><ul>
+<li><p><strong>订阅和拉取消息</strong>：消费者（Consumer）同样通过NameServer获取路由信息，找到提供所需Topic服务的Broker（包括Master和Slave）。然后，消费者可以向这些Broker发起拉取请求，获取并处理消息。</p>
+</li>
+<li><p><strong>消费模式</strong>：</p>
+<ul>
+<li>在集群消费模式下，每条消息只会被同一个消费组内的一个消费者实例处理；</li>
+<li>在广播消费模式下，每条消息会被消费组内的所有消费者实例分别处理。</li>
+</ul>
+</li>
+</ul>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><p>生产者发送的消息最终会被存储在Broker上的特定Topic下的消息队列中。Broker负责管理这些消息队列，确保消息能够被正确地存储、备份以及供消费者订阅和消费。通过这种方式，RocketMQ实现了高效可靠的消息传递机制，支持大规模分布式系统的通信需求。</p>
+</blockquote>
+<h2 id="1-启动-NameServer"><a href="#1-启动-NameServer" class="headerlink" title="1. 启动 NameServer"></a>1. 启动 NameServer</h2><p>启动 NameServer。NameServer 启动后监听端口，等待 Broker、Producer、Consumer 连接，相当于一个路由控制中心。</p>
+<h2 id="2-启动-Broker"><a href="#2-启动-Broker" class="headerlink" title="2. 启动 Broker"></a>2. 启动 Broker</h2><p>启动 Broker。与所有 NameServer 保持长连接，定时发送心跳包。心跳包中包含当前 Broker 信息以及存储所有 Topic 信息。注册成功后，NameServer 集群中就有 Topic 跟 Broker 的映射关系。</p>
+<h2 id="3-创建-Topic"><a href="#3-创建-Topic" class="headerlink" title="3. 创建 Topic"></a>3. 创建 Topic</h2><p>创建 Topic 时需要指定该 Topic 要存储在哪些 Broker 上，也可以在发送消息时自动创建 Topic。</p>
+<h2 id="4-生产者发送消息"><a href="#4-生产者发送消息" class="headerlink" title="4. 生产者发送消息"></a>4. 生产者发送消息</h2><p>生产者发送消息。启动时先跟 NameServer 集群中的其中一台建立长连接，并从 NameServer 中获取当前发送的 Topic 存在于哪些 Broker  上，轮询从队列列表中选择一个队列，然后与队列所在的 Broker 建立长连接从而向 Broker发消息。</p>
+<h2 id="5-消费者接受消息"><a href="#5-消费者接受消息" class="headerlink" title="5. 消费者接受消息"></a>5. 消费者接受消息</h2><p>消费者接受消息。跟其中一台 NameServer 建立长连接，获取当前订阅 Topic 存在哪些 Broker 上，然后直接跟 Broker 建立连接通道，然后开始消费消息。</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Allimac</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2025/03/15/A-First-Look-At-RocketMQ/">http://example.com/2025/03/15/A-First-Look-At-RocketMQ/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">AllimacBlog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><a class="post-meta__tags" href="/tags/%E5%85%AB%E8%82%A1/">八股</a><a class="post-meta__tags" href="/tags/RocketMQ/">RocketMQ</a></div><div class="post-share"><div class="social-share" data-image="https://s21.ax1x.com/2025/03/15/pEaULE8.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/03/15/A-First-Look-At-Kafka/" title="A-First-Look-At-Kafka"><img class="cover" src="https://s21.ax1x.com/2025/03/15/pEaUHDP.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of previous post"><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">A-First-Look-At-Kafka</div></div><div class="info-2"><div class="info-item-1">初探Kafka，一些关于Kafka的问题</div></div></div></a><a class="pagination-related" href="/2025/03/15/A-First-Look-At-Zookeeper/" title="A-First-Look-At-Zookeeper"><img class="cover" src="https://s21.ax1x.com/2025/03/15/pEaaHz9.png" onerror="onerror=null;src='/img/404.jpg'" alt="cover of next post"><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">A-First-Look-At-Zookeeper</div></div><div class="info-2"><div class="info-item-1">初探Zookeeper，一些关于Zookeeper的问题</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/03/15/A-First-Look-At-Kafka/" title="A-First-Look-At-Kafka"><img class="cover" src="https://s21.ax1x.com/2025/03/15/pEaUHDP.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-03-15</div><div class="info-item-2">A-First-Look-At-Kafka</div></div><div class="info-2"><div class="info-item-1">初探Kafka，一些关于Kafka的问题</div></div></div></a><a class="pagination-related" href="/2025/03/15/A-First-Look-At-Zookeeper/" title="A-First-Look-At-Zookeeper"><img class="cover" src="https://s21.ax1x.com/2025/03/15/pEaaHz9.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-03-15</div><div class="info-item-2">A-First-Look-At-Zookeeper</div></div><div class="info-2"><div class="info-item-1">初探Zookeeper，一些关于Zookeeper的问题</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Allimac</div><div class="author-info-description">华丽的仓库存放着我简陋的思想</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">43</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">36</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">6</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/AillemaCc"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/AillemaCc" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="http://www.swindle.icu/#/Home" target="_blank" title="曾经的博客"><i class="fas fa-envelope" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">这里是小梦一场的大床</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BD%BF%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">1.</span> <span class="toc-text">使用场景</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%BC%82%E6%AD%A5%E8%A7%A3%E8%80%A6"><span class="toc-number">1.1.</span> <span class="toc-text">异步解耦</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%89%8A%E5%B3%B0%E5%A1%AB%E8%B0%B7"><span class="toc-number">1.2.</span> <span class="toc-text">削峰填谷</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E7%94%A8%E6%88%B7%E5%8F%91%E8%B5%B7%E6%B5%B7%E9%87%8F%E7%A7%92%E6%9D%80%E8%AF%B7%E6%B1%82%E5%88%B0%E7%A7%92%E6%9D%80%E4%B8%9A%E5%8A%A1%E5%A4%84%E7%90%86%E7%B3%BB%E7%BB%9F"><span class="toc-number">1.2.1.</span> <span class="toc-text">1. 用户发起海量秒杀请求到秒杀业务处理系统</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E7%A7%92%E6%9D%80%E5%A4%84%E7%90%86%E7%B3%BB%E7%BB%9F%E6%8C%89%E7%85%A7%E7%A7%92%E6%9D%80%E5%A4%84%E7%90%86%E9%80%BB%E8%BE%91%E5%B0%86%E6%BB%A1%E8%B6%B3%E7%A7%92%E6%9D%80%E6%9D%A1%E4%BB%B6%E7%9A%84%E8%AF%B7%E6%B1%82%E5%8F%91%E9%80%81-RocketMQ"><span class="toc-number">1.2.2.</span> <span class="toc-text">2. 秒杀处理系统按照秒杀处理逻辑将满足秒杀条件的请求发送 RocketMQ</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E4%B8%8B%E6%B8%B8%E7%9A%84%E9%80%9A%E7%9F%A5%E7%B3%BB%E7%BB%9F%E8%AE%A2%E9%98%85-RocketMQ-%E7%9A%84%E7%A7%92%E6%9D%80%E7%9B%B8%E5%85%B3%E6%B6%88%E6%81%AF%EF%BC%8C%E5%86%8D%E5%B0%86%E7%A7%92%E6%9D%80%E6%88%90%E5%8A%9F%E7%9A%84%E6%B6%88%E6%81%AF%E5%8F%91%E9%80%81%E5%88%B0%E7%9B%B8%E5%BA%94%E7%94%A8%E6%88%B7"><span class="toc-number">1.2.3.</span> <span class="toc-text">3. 下游的通知系统订阅 RocketMQ 的秒杀相关消息，再将秒杀成功的消息发送到相应用户</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E7%94%A8%E6%88%B7%E6%94%B6%E5%88%B0%E7%A7%92%E6%9D%80%E6%88%90%E5%8A%9F%E7%9A%84%E9%80%9A%E7%9F%A5"><span class="toc-number">1.2.4.</span> <span class="toc-text">4. 用户收到秒杀成功的通知</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%A1%BA%E5%BA%8F%E6%B6%88%E6%81%AF"><span class="toc-number">1.3.</span> <span class="toc-text">顺序消息</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E6%A8%A1%E5%BC%8F%E7%BC%93%E5%AD%98%E5%90%8C%E6%AD%A5"><span class="toc-number">1.4.</span> <span class="toc-text">分布式模式缓存同步</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%88%86%E5%B8%83%E5%BC%8F%E5%AE%9A%E6%97%B6-%E5%BB%B6%E6%97%B6%E8%B0%83%E5%BA%A6"><span class="toc-number">1.5.</span> <span class="toc-text">分布式定时&#x2F;延时调度</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%B6%88%E6%81%AF%E7%94%9F%E4%BA%A7%E9%98%B6%E6%AE%B5"><span class="toc-number">1.5.1.</span> <span class="toc-text">1. 消息生产阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%B6%88%E6%81%AF%E5%AD%98%E5%82%A8%E4%B8%8E%E8%B0%83%E5%BA%A6"><span class="toc-number">1.5.2.</span> <span class="toc-text">2. 消息存储与调度</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%B6%88%E8%B4%B9%E8%80%85%E5%A4%84%E7%90%86%E9%98%B6%E6%AE%B5"><span class="toc-number">1.5.3.</span> <span class="toc-text">3. 消费者处理阶段</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E7%BB%93%E6%9E%9C%E5%8F%8D%E9%A6%88%E4%B8%8E%E7%9B%91%E6%8E%A7"><span class="toc-number">1.5.4.</span> <span class="toc-text">4. 结果反馈与监控</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%9F%BA%E7%A1%80%E6%A6%82%E5%BF%B5"><span class="toc-number">2.</span> <span class="toc-text">基础概念</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%B8%BB%E9%A2%98-Topic"><span class="toc-number">2.1.</span> <span class="toc-text">主题 Topic</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%98%9F%E5%88%97-Queue"><span class="toc-number">2.2.</span> <span class="toc-text">队列 Queue</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B6%88%E6%81%AF-Message"><span class="toc-number">2.3.</span> <span class="toc-text">消息 Message</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%94%9F%E4%BA%A7%E8%80%85-Producer"><span class="toc-number">2.4.</span> <span class="toc-text">生产者 Producer</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%B6%88%E8%B4%B9%E8%80%85-Consumer"><span class="toc-number">2.5.</span> <span class="toc-text">消费者 Consumer</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%9B%86%E7%BE%A4%E6%B6%88%E8%B4%B9%E6%A8%A1%E5%BC%8F"><span class="toc-number">2.5.1.</span> <span class="toc-text">集群消费模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%B9%BF%E6%92%AD%E6%B6%88%E8%B4%B9%E6%A8%A1%E5%BC%8F"><span class="toc-number">2.5.2.</span> <span class="toc-text">广播消费模式</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%90%8D%E5%AD%97%E6%9C%8D%E5%8A%A1%E5%99%A8-NameServer"><span class="toc-number">2.6.</span> <span class="toc-text">名字服务器 NameServer</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%A3%E7%90%86%E6%9C%8D%E5%8A%A1%E5%99%A8-Broker"><span class="toc-number">2.7.</span> <span class="toc-text">代理服务器 Broker</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">3.</span> <span class="toc-text">工作原理</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B6%88%E6%81%AF%E5%8F%91%E9%80%81%E6%B5%81%E7%A8%8B"><span class="toc-number">3.0.1.</span> <span class="toc-text">消息发送流程</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B6%88%E8%B4%B9%E8%80%85%E6%B6%88%E8%B4%B9%E6%B6%88%E6%81%AF"><span class="toc-number">3.0.2.</span> <span class="toc-text">消费者消费消息</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">3.0.3.</span> <span class="toc-text">总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E5%90%AF%E5%8A%A8-NameServer"><span class="toc-number">3.1.</span> <span class="toc-text">1. 启动 NameServer</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E5%90%AF%E5%8A%A8-Broker"><span class="toc-number">3.2.</span> <span class="toc-text">2. 启动 Broker</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E5%88%9B%E5%BB%BA-Topic"><span class="toc-number">3.3.</span> <span class="toc-text">3. 创建 Topic</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#4-%E7%94%9F%E4%BA%A7%E8%80%85%E5%8F%91%E9%80%81%E6%B6%88%E6%81%AF"><span class="toc-number">3.4.</span> <span class="toc-text">4. 生产者发送消息</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#5-%E6%B6%88%E8%B4%B9%E8%80%85%E6%8E%A5%E5%8F%97%E6%B6%88%E6%81%AF"><span class="toc-number">3.5.</span> <span class="toc-text">5. 消费者接受消息</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item"><a class="thumbnail" href="/2025/03/15/A-First-Look-At-Zookeeper/" title="A-First-Look-At-Zookeeper"><img src="https://s21.ax1x.com/2025/03/15/pEaaHz9.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="A-First-Look-At-Zookeeper"/></a><div class="content"><a class="title" href="/2025/03/15/A-First-Look-At-Zookeeper/" title="A-First-Look-At-Zookeeper">A-First-Look-At-Zookeeper</a><time datetime="2025-03-15T05:21:49.000Z" title="发表于 2025-03-15 13:21:49">2025-03-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/03/15/A-First-Look-At-RocketMQ/" title="A-First-Look-At-RocketMQ"><img src="https://s21.ax1x.com/2025/03/15/pEaULE8.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="A-First-Look-At-RocketMQ"/></a><div class="content"><a class="title" href="/2025/03/15/A-First-Look-At-RocketMQ/" title="A-First-Look-At-RocketMQ">A-First-Look-At-RocketMQ</a><time datetime="2025-03-15T05:13:11.000Z" title="发表于 2025-03-15 13:13:11">2025-03-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/03/15/A-First-Look-At-Kafka/" title="A-First-Look-At-Kafka"><img src="https://s21.ax1x.com/2025/03/15/pEaUHDP.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="A-First-Look-At-Kafka"/></a><div class="content"><a class="title" href="/2025/03/15/A-First-Look-At-Kafka/" title="A-First-Look-At-Kafka">A-First-Look-At-Kafka</a><time datetime="2025-03-15T05:08:55.000Z" title="发表于 2025-03-15 13:08:55">2025-03-15</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/03/12/NetWork-5/" title="NetWork-5"><img src="https://s21.ax1x.com/2025/03/12/pEU3ljS.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="NetWork-5"/></a><div class="content"><a class="title" href="/2025/03/12/NetWork-5/" title="NetWork-5">NetWork-5</a><time datetime="2025-03-12T10:20:14.000Z" title="发表于 2025-03-12 18:20:14">2025-03-12</time></div></div><div class="aside-list-item"><a class="thumbnail" href="/2025/03/12/NetWork-4/" title="NetWork-4"><img src="https://s21.ax1x.com/2025/03/12/pEU3M1f.png" onerror="this.onerror=null;this.src='/img/404.jpg'" alt="NetWork-4"/></a><div class="content"><a class="title" href="/2025/03/12/NetWork-4/" title="NetWork-4">NetWork-4</a><time datetime="2025-03-12T10:20:01.000Z" title="发表于 2025-03-12 18:20:01">2025-03-12</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2024 - 2025 By Allimac</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
