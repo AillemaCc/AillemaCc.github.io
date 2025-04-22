@@ -1,0 +1,469 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>JavaBasic8Gu | AllimacBlog</title><meta name="author" content="Allimac"><meta name="copyright" content="Allimac"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="Java基础八股拾遗">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JavaBasic8Gu">
+<meta property="og:url" content="http://example.com/2025/04/22/JavaBasic8Gu/index.html">
+<meta property="og:site_name" content="AllimacBlog">
+<meta property="og:description" content="Java基础八股拾遗">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/avatar.png">
+<meta property="article:published_time" content="2025-04-22T10:30:18.000Z">
+<meta property="article:modified_time" content="2025-04-22T10:32:37.498Z">
+<meta property="article:author" content="Allimac">
+<meta property="article:tag" content="八股">
+<meta property="article:tag" content="Java基础八股">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/avatar.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "JavaBasic8Gu",
+  "url": "http://example.com/2025/04/22/JavaBasic8Gu/",
+  "image": "http://example.com/img/avatar.png",
+  "datePublished": "2025-04-22T10:30:18.000Z",
+  "dateModified": "2025-04-22T10:32:37.498Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Allimac",
+      "url": "http://example.com/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/faviconcute.png"><link rel="canonical" href="http://example.com/2025/04/22/JavaBasic8Gu/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: 'JavaBasic8Gu',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">64</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">67</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 链接</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></li><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></li></ul></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/nature_top_image.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">AllimacBlog</span></a><a class="nav-page-title" href="/"><span class="site-name">JavaBasic8Gu</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 链接</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></li><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></li></ul></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">JavaBasic8Gu</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-04-22T10:30:18.000Z" title="发表于 2025-04-22 18:30:18">2025-04-22</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-04-22T10:32:37.498Z" title="更新于 2025-04-22 18:32:37">2025-04-22</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/%E6%8A%80%E6%9C%AF/">技术</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">6.8k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>20分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="为什么java解释和编译都有"><a href="#为什么java解释和编译都有" class="headerlink" title="为什么java解释和编译都有"></a>为什么java解释和编译都有</h1><p>首先在Java经过编译之后生成字节码文件，接下来进入JVM中，就有两个步骤编译和解释。Java源代码首先被编译成字节码，JIT 会把编译过的机器码保存起来,以备下次使用。JVM中一个方法调用计数器，当累计计数大于一定值的时候，就使用JIT进行编译生成机器码文件。否则就是用解释器进行解释执行，然后字节码也是经过解释器进行解释运行的。所以Java既是编译型也是解释性语言，默认采用的是解释器和编译器混合的模式。</p>
+<h1 id="数据类型转换方式你知道哪些？"><a href="#数据类型转换方式你知道哪些？" class="headerlink" title="数据类型转换方式你知道哪些？"></a>数据类型转换方式你知道哪些？</h1><p>自动类型转换</p>
+<p>强制类型转换</p>
+<p>字符串转换：比如将字符串转换为整型<code>int</code>，可以使用<code>Integer.parseInt()</code>方法，将字符串转换为浮点型<code>double</code>，可以使用<code>Double.parseDouble()</code>方法等。</p>
+<p>数值之间的转换：将整型转换为字符型、将字符型转换为整型等。这些转换方式可以通过类型的包装类来实现。例如<code>Character</code>类、<code>Integer</code>类等提供了相应的转换方法。</p>
+<h1 id="Java为什么要有Integer？"><a href="#Java为什么要有Integer？" class="headerlink" title="Java为什么要有Integer？"></a>Java为什么要有Integer？</h1><p>Integer对应是int类型的包装类，可以把数据跟处理这些数据的方法结合在一起。比如Integer就有parseInt()等方法来专门处理int型相关的数据。另一个非常重要的原因就是在Java中绝大部分方法或类都是用来处理类类型对象的</p>
+<p>在泛型当中，泛型只能使用引用类型，必须使用包装类。在转换当中，基本类型和引用类型不能直接进行转换，必须使用包装类来实现。例如，将一个int类型的值转换为String类型，必须首先将其转换为Integer类型，再转换成String。而在集合当中，只能存储对象，而不能存储基本数据类型。</p>
+<h1 id="多态体现在哪几个方面"><a href="#多态体现在哪几个方面" class="headerlink" title="多态体现在哪几个方面"></a>多态体现在哪几个方面</h1><p>多态是指允许不同类的对象对同一消息作出响应。</p>
+<p>比如方法的重载，同一类中可以有多个同名方法。方法的重写，子类提供对父类同名方法的具体实现。</p>
+<p>同样的，对于接口来说，可以有很多不同的实现类。向上转型向下转型也体现多态的部分。</p>
+<h1 id="抽象类和普通类区别"><a href="#抽象类和普通类区别" class="headerlink" title="抽象类和普通类区别"></a>抽象类和普通类区别</h1><ul>
+<li>实例化：普通类可以直接实例化对象，而抽象类不能被实例化，只能被继承</li>
+<li>方法实现：普通类中的方法可以有具体的实现，而抽象类中的方法可以有实现也可以没有实现。</li>
+<li>继承：一个类可以继承一个普通类，而且可以继承多个接口；而一个类只能继承一个抽象类，但可以同时实现多个接口。</li>
+<li>实现限制：普通类可以被其他类继承和使用，而抽象类一般用于作为基类</li>
+</ul>
+<h1 id="抽象类和接口的区别"><a href="#抽象类和接口的区别" class="headerlink" title="抽象类和接口的区别"></a>抽象类和接口的区别</h1><p>抽象类用来描述类的共同特性和行为，可以有成员变量，构造方法或者具体方法。但是接口用来定义行为规范，只能有常量和抽象方法。</p>
+<p>在具体区别上，首先是实现方式不同，接口用implements实现，继承抽象类使用extends。其次在方法方式上，接口只有定义，不能有方法的实现。抽象类可以有定义和实现。对于访问修饰符，接口的成员变量默认为public static final，必须赋初值，不能被修改。所有的方法都是public、abstract的</p>
+<h1 id="抽象类可以被实例化吗"><a href="#抽象类可以被实例化吗" class="headerlink" title="抽象类可以被实例化吗"></a>抽象类可以被实例化吗</h1><p>抽象类本身不能被实例化。这意味着不能使用<code>new</code>关键字直接创建一个抽象类的对象。抽象类的存在主要是为了被继承。包含一个多个抽象方法的抽象类，可以在它的子类当中实现这些抽象方法。子类当然可以被实例化。所以说这也是一种实例化。</p>
+<h1 id="final的作用"><a href="#final的作用" class="headerlink" title="final的作用"></a>final的作用</h1><p>从上到下修饰类，修饰方法，修饰变量。</p>
+<p>修饰类，表示这个类不能被继承。修饰方法，被final修饰的方法不能被子类重写。修饰变量，被final修饰的基本数据类型变量一旦被赋值就不能被改变。被final修饰的引用数据类型就不能再指向其他变量了。但是这个对象本身的内容还是可以改变的。</p>
+<h1 id="什么是泛型"><a href="#什么是泛型" class="headerlink" title="什么是泛型"></a>什么是泛型</h1><p>泛型允许类接口和方法在定义的时候，使用一个或者多个类型参数。这些类型参数可以在使用时才制定具体的类型。泛型的主要目的是在编译的时候提供更强的类型检查，并且在编译之后可以保留类型信息，避免在运行的时候出现类型转换异常。</p>
+<p>泛型中的类型在使用时指定就可以了，不需要强制类型转换。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">List list=<span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">list.add(<span class="string">&quot;fiu&quot;</span>);</span><br><span class="line">list.add(<span class="number">0</span>);</span><br></pre></td></tr></table></figure>
+
+<p>list当中的元素都是object类型，所以在取出元素的时候，需要人为强转成具体的目标类型。假如提供泛型，就可以提供类型的约束。</p>
+<h1 id="注解的原理"><a href="#注解的原理" class="headerlink" title="注解的原理"></a>注解的原理</h1><p>注解本身是一个继承了annotation的特殊接口，具体实现类是java运行时生成的动态代理类。通过反射获取注解的时候，返回的是java运行时生成的动态代理对象。最终调用一个invoke方法，从menberValues这个Map中索引出对应的值。</p>
+<h1 id="异常"><a href="#异常" class="headerlink" title="异常"></a>异常</h1><p>两大类，Throwable类以及他的子类。两个重要的子类是exception和error。表示不同类型的异常状况</p>
+<p>错误是运行时环境的错误，程序无法处理错误，甚至不应该尝试补货这种错误</p>
+<p>对于异常，是程序本身可以处理的。非运行时异常在编译时期就必须被捕获或者声明抛出，通常是外部错误。对于运行时的异常，经常由程序错误导致。</p>
+<h1 id="Stream流的并行API是什么"><a href="#Stream流的并行API是什么" class="headerlink" title="Stream流的并行API是什么"></a>Stream流的并行API是什么</h1><p>将元数据分为多个子流对象进行多线程操作，然后再将结果汇总为一个流对象，底层是使用fork join池实现。对cpu密集型的任务来说，并行流使用forkjoinpool线程池，为每个cpu分配一个任务，这是很有效率的</p>
+<h1 id="怎么把一个对象从一个jvm转移到另一个jvm"><a href="#怎么把一个对象从一个jvm转移到另一个jvm" class="headerlink" title="怎么把一个对象从一个jvm转移到另一个jvm"></a>怎么把一个对象从一个jvm转移到另一个jvm</h1><ul>
+<li>序列化和反序列化：序列化为字节流，传输到另一个jvm，再反序列化为对象</li>
+<li>消息传递机制：比如消息队列，通过网络套接字进行通信。需要自定义协议来序列化和反序列化</li>
+<li>远程调用：在分布式系统中调用远程jvm上的对象的方法</li>
+<li>共享数据库或者共享缓存</li>
+</ul>
+<h1 id="将对象转换为二进制字节流怎么实现"><a href="#将对象转换为二进制字节流怎么实现" class="headerlink" title="将对象转换为二进制字节流怎么实现"></a>将对象转换为二进制字节流怎么实现</h1><p>序列化对象流：</p>
+<ul>
+<li>ObjectOutputStream：通过writeObject(）方法做序列化操作。</li>
+<li>ObjectInputStrean：通过readObject()方法做反序列化操作。</li>
+</ul>
+<p>只有实现了Serializable或Externalizable接口的类的对象才能被序列化</p>
+<p>先实现序列化接口，之后创建输出流，把对象写入。实现对象反序列化就在需要的地方创建输入流读取对象。</p>
+<h1 id="Java并发当中的线程安全"><a href="#Java并发当中的线程安全" class="headerlink" title="Java并发当中的线程安全"></a>Java并发当中的线程安全</h1><p>原子性，可见性，有序性。可见性指一个线程对主内存的修改，必须可以及时的被其他线程看到。在java当中使用synchronized和volatile这两个关键字确保可见性。另外一点事有序性，因为一个线程在观察其他线程中的指令执行顺序，因为指令重排序，所以观察的结果会杂乱无序。java当中使用happens-before原则来确保有序性</p>
+<h1 id="偏向锁升级轻量级锁的过程"><a href="#偏向锁升级轻量级锁的过程" class="headerlink" title="偏向锁升级轻量级锁的过程"></a>偏向锁升级轻量级锁的过程</h1><p>偏向锁升级到轻量级锁的过程通常发生在有多个线程尝试获取同一个锁，而该锁当前正处于偏向锁状态时。以下是偏向锁升级为轻量级锁的详细过程：</p>
+<ol>
+<li><p><strong>初始偏向</strong>：当一个线程第一次获取锁时，如果目标对象没有被其他线程锁定（即处于无锁或偏向锁状态），JVM会在对象头中标记该对象为偏向锁，并记录下持有该锁的线程ID。</p>
+</li>
+<li><p><strong>偏向撤销</strong>：当另一个线程尝试获取已经被某个线程偏向的锁时，需要先检查偏向锁是否仍然有效：</p>
+<ul>
+<li>如果原先持有锁的线程已经结束或者不再持有该锁，那么偏向锁可以被撤销，对象恢复到无锁状态。</li>
+<li>如果原先持有锁的线程还在使用该锁，此时就会触发偏向锁的撤销操作。</li>
+</ul>
+</li>
+<li><p><strong>偏向锁撤销</strong>：偏向锁的撤销可能会导致一次全局的安全点（Safe Point），这会暂停所有Java线程（Stop-The-World, STW）。撤销过程中，JVM会将对象的状态从偏向锁转换为无锁状态，然后重新竞争锁。</p>
+</li>
+<li><p><strong>轻量级锁的加锁</strong>：在偏向锁撤销后，如果有多个线程竞争同一把锁，JVM会尝试使用CAS（Compare And Swap）操作来为这些线程分配轻量级锁。每个竞争的线程都会在自己的栈帧中创建一个锁记录（Lock Record），并尝试通过CAS操作将对象头中的Mark Word更新为自己锁记录的指针。</p>
+</li>
+<li><p><strong>自旋等待</strong>：如果CAS操作失败，说明已经有其他线程成功获得了轻量级锁，当前线程会进入一种称为“自旋”的状态，在一段时间内循环尝试获取锁，而不是立即进入阻塞状态。</p>
+</li>
+<li><p><strong>升级重量级锁</strong>：如果自旋最终未能成功获取锁，且达到一定的自旋次数限制或检测到自旋期间没有取得进展，锁将会膨胀为重量级锁，此时未获得锁的线程会被操作系统挂起，直到持有锁的线程释放锁为止。</p>
+</li>
+</ol>
+<p>这个过程是JVM为了提高并发性能而设计的一种优化策略，通过逐步升级锁的方式，尽量减少不必要的上下文切换和线程阻塞，以提高系统的整体效率。需要注意的是，一旦锁升级为重量级锁之后，就不会再降级回轻量级或偏向锁。</p>
+<h1 id="调用interrupt如何让线程抛出异常"><a href="#调用interrupt如何让线程抛出异常" class="headerlink" title="调用interrupt如何让线程抛出异常"></a>调用interrupt如何让线程抛出异常</h1><p>每个线程当中都有一个布尔属性表示它的中断状态</p>
+<p>假如一个线程被调用了中断方法，他会先判断自己线程当中的运行情况</p>
+<ul>
+<li>假如线程当中正在执行低级别的可中断方法，就直接抛出异常</li>
+<li>假如没在执行，就先设置一个中断状态，之后对中断状态进行轮询判断需不需要中断</li>
+</ul>
+<h1 id="不同的线程如何通信"><a href="#不同的线程如何通信" class="headerlink" title="不同的线程如何通信"></a>不同的线程如何通信</h1><p>线程间的通信可以使用共享变量的方式。但既然说到了共享，那就要保证线程安全而使用synchronized关键字或者volatile关键字</p>
+<p>除此之外，obj类当中的wait notify notifyall这种方法也可以实现线程间的通信。</p>
+<p>当然，通过这种，你还可以想到juc包下的lock和condition接口提供的方法await signal signalall方法</p>
+<p>线程间的协作自然需要线程间的通信</p>
+<p>比如countdownlatch这种计数器，可以让多个线程等待其他线程完成操作</p>
+<p>cyclicbarrier可以让线程都到达屏障之后才继续工作</p>
+<h1 id="怎么保证多线程安全"><a href="#怎么保证多线程安全" class="headerlink" title="怎么保证多线程安全"></a>怎么保证多线程安全</h1><p>这是涉及到保证线程安全的几个方法</p>
+<p>比如使用synchronized关键字修饰保证对共享资源的互斥访问</p>
+<p>volatile关键字保证可见性</p>
+<p>再就是使用锁机制 比如reentrantlock类提供的一些更灵活的锁方法</p>
+<p>除此之外，原子类的原子操作也能保证多线程安全</p>
+<h1 id="java常用的锁-以及锁场景"><a href="#java常用的锁-以及锁场景" class="headerlink" title="java常用的锁 以及锁场景"></a>java常用的锁 以及锁场景</h1><p>首先想到内置锁，修饰代码块的synchronized。情况简单，快速提供方法的互斥访问</p>
+<p>比内置锁高级一些的ReentrantLock 功能多，可重入锁、公平锁、定时锁等待这些功能</p>
+<p>读写锁 读多写少</p>
+<p>乐观锁悲观锁 这是一种涉及到锁的观念  悲观锁 <strong>共享资源每次只给一个线程使用，其它线程阻塞，用完后再把资源转让给其它线程</strong>。</p>
+<p>自旋锁 使用cas实现，等待锁的情况下会持续检查锁是不是可用</p>
+<h1 id="countdownlatch是做什么的"><a href="#countdownlatch是做什么的" class="headerlink" title="countdownlatch是做什么的"></a>countdownlatch是做什么的</h1><p>以一个场景来说，他可以让一个线程等待计数器个数的子线程或者其他线程完成之后，再运行。首先他会维护一个计数器，并且阻塞需要等待的线程。其他线程每运行结束一个，这个计数器就减去1。计数器为0，阻塞的线程开始运行</p>
+<h1 id="synchronized和reentrantlock的工作原理"><a href="#synchronized和reentrantlock的工作原理" class="headerlink" title="synchronized和reentrantlock的工作原理"></a>synchronized和reentrantlock的工作原理</h1><p>首先，syn是java提供的一个内置锁，底层实现原理可以说他是一个监视器锁。被syn修饰的部分，会在编译之后修饰同步的代码块加上一个monitorentrt和monitorexit字节码指令。执行enter指令的时候，假如对象没有被锁定或者说已经持有锁，那对象的锁的计数器就加上1。竞争的线程进入等待队列中。exit就计数器减，直到减到0释放锁</p>
+<p>而reentrantlock底层基于aqs实现，维护了一个基于clh队列的锁框架。提供了比syn更高级的功能。公平锁，可中断锁，以及定时的锁等待</p>
+<h1 id="简单谈谈aqs"><a href="#简单谈谈aqs" class="headerlink" title="简单谈谈aqs"></a>简单谈谈aqs</h1><p>它的设计目标是<strong>用一个int变量表示同步状态，并通过CLH队列管理线程阻塞与唤醒</strong>。</p>
+<p>也就是三个核心</p>
+<ul>
+<li>状态</li>
+<li>控制线程竞争锁的clh队列</li>
+<li>获取和释放资源的方法</li>
+</ul>
+<p>因为aqs是juc锁的核心实现框架，所以上面三个核心，尤其是状态，在不同的juc锁里面都有不同的解释和意义。</p>
+<h1 id="如何用aqs实现一个简单的公平锁"><a href="#如何用aqs实现一个简单的公平锁" class="headerlink" title="如何用aqs实现一个简单的公平锁"></a>如何用aqs实现一个简单的公平锁</h1><p>首先要创建一个内部类来继承aqs，不继承的话是没办法重写获取资源和释放资源的方法的</p>
+<p>对于公平锁，就要在获取资源的方法当中，根据入队顺序来获取锁，也就是一个线程想要竞争锁，就要先检查等待队列里是不是有线程</p>
+<p>再创建一个外部类，内部持有aqs的子类对象，对外提供lock和unlock方法，</p>
+<h1 id="Threadlocal作用-原理-kv是啥-会出现什么问题-怎么解决"><a href="#Threadlocal作用-原理-kv是啥-会出现什么问题-怎么解决" class="headerlink" title="Threadlocal作用 原理 kv是啥 会出现什么问题 怎么解决"></a>Threadlocal作用 原理 kv是啥 会出现什么问题 怎么解决</h1><p>这个东西就是允许线程创建局部变量，每个线程都有自己独立的变量副本，是一个map结构的。作用就是避免了线程之间的资源共享和同步问题，降低了代码之间的耦合度，而且还避免了线程之间的同步开销</p>
+<p>每个map的key是threadlocal本身，value是变量值</p>
+<p>对于他的原理，也就是他的实现依赖于thread类当中的ThreadlocalMap字段，存储变量本身和对应值的映射。这个字段是每个线程都有的。</p>
+<h1 id="jvm内存模型的栈"><a href="#jvm内存模型的栈" class="headerlink" title="jvm内存模型的栈"></a>jvm内存模型的栈</h1><p>栈主要存储局部变量，方法调用的参数，方法返回参数，或者说，局部变量、方法出口动态链接这样的信息。</p>
+<h1 id="方法区的方法执行过程是什么样的"><a href="#方法区的方法执行过程是什么样的" class="headerlink" title="方法区的方法执行过程是什么样的"></a>方法区的方法执行过程是什么样的</h1><p>首先解析方法的调用，根据符号引用找到实际地址。之后创建栈帧，存储局部变量表，动态链接，方法出口这些信息。之后就可以执行方法并且返回处理</p>
+<h1 id="方法区当中还有什么东西"><a href="#方法区当中还有什么东西" class="headerlink" title="方法区当中还有什么东西"></a>方法区当中还有什么东西</h1><p>类信息 常量池 运行时常量池 常量池缓存 符号引用 方法的字节码</p>
+<h1 id="创建对象的过程"><a href="#创建对象的过程" class="headerlink" title="创建对象的过程"></a>创建对象的过程</h1><p>虚拟机遇到一条new指令的时候，首先检查这个指令的参数是不是能在常量池当中定位到一个类的符号引用。并且检查这个类是不是已经被加载解析和初始化过了。假如没有，就要继续执行类加载过程。也就是从分配内存开始，在堆的新生代当中为对象分配内存。分配之后，就可以为类当中的属性初始化0值。保证属性不设置初始值就能直接使用。在之后，就是对对象头的初始化，包括包名，类名，gc分代，对象的元数据信息，hash码。之后就是真正的初始化了</p>
+<h1 id="类加载的过程"><a href="#类加载的过程" class="headerlink" title="类加载的过程"></a>类加载的过程</h1><p>加载验证准备解析初始化</p>
+<p>首先是加载，根据类的全限定名，也就是包名加上类名，获取到这个类的class对象的二进制字节流。将这个二进制对象的字节流，转化为方法区运行时候的数据结构</p>
+<p>之后就是验证的过程，我们要看，这个class文件能不能符合我们jvm虚拟机的安全要求或者说，正确性要求。大概验证四个部分：文件格式 元数据 字节码 符号引用。检查完之后，就可以进行类加载的准备。为类中的静态字段分配内存并且设置初始化的0值。解析阶段是将常量池的符号引用转化为直接引用的过程</p>
+<p>之后就执行类加载过程的初始化</p>
+<h1 id="什么时候出现自动装箱"><a href="#什么时候出现自动装箱" class="headerlink" title="什么时候出现自动装箱"></a>什么时候出现自动装箱</h1><p>赋值的时候，基本类型会装箱成包装类型</p>
+<p>方法调用的时候，对于参数是包装类型的方法，基本类型会自动转换成包装类型</p>
+<h1 id="为什么要有包装类"><a href="#为什么要有包装类" class="headerlink" title="为什么要有包装类"></a>为什么要有包装类</h1><p>两个原因 第一个 把数据和处理数据的方法结合在一起</p>
+<p>第二个 java当中的绝大部分方法都是接收类型对象。这个时候就需要包装类来装箱基本类型。比如说，在泛型当中，只能使用引用类型而不能使用基本类型</p>
+<p>除此之外，数值转换和集合当中，都需要包装类。前者是将基本类型转化成引用类型，比如说把int转化成string。后者是集合当中只能存储对象</p>
+<h1 id="封装-继承-多态"><a href="#封装-继承-多态" class="headerlink" title="封装 继承 多态"></a>封装 继承 多态</h1><p>对于封装，简单来说就是将对象的属性和行为结合在一起，对外不暴露内部细节，而是通过封装出来的接口和外界交互。继承，就是可以使得子类共享父类属性和行为的一种机制，是代码重复使用的重要手段。而多态是指不同类的对象允许对用一个消息做出响应。重载（同名方法）和重写分别可以说是编译时多态和运行时多态。接口的实现也可以说是多态的机制，因为多个类可以实现同一个接口</p>
+<h1 id="抽象类和接口的区别-1"><a href="#抽象类和接口的区别-1" class="headerlink" title="抽象类和接口的区别"></a>抽象类和接口的区别</h1><p>首先，抽象类是描述类的共同特性和行为，接口则是对方法的规范。他们两个继承和实现的关键字不同，对于他们的变量来说，抽象类当中可以有变量，包括实例变量和静态变量。而接口当中只能有常量。对于他们的方法来说，抽象类当中的方法可以有具体的实现，当然也可以没有。但是接口当中的方法不能有具体的实现。java不支持多继承，所以一个普通类只能继承一个抽象类，但是支持多实现，一个普通类可以实现多个接口。</p>
+<h1 id="什么是泛型-1"><a href="#什么是泛型-1" class="headerlink" title="什么是泛型"></a>什么是泛型</h1><p>允许接口 类 方法在定义的时候，使用一个或者多个类型参数。这些类型参数可以在使用的时候才指定为具体的类型。泛型的主要目的是在编程的时候提供更强的类型检查，并且在编译之后，能够保留类型信息。</p>
+<h1 id="什么是反射"><a href="#什么是反射" class="headerlink" title="什么是反射"></a>什么是反射</h1><p>在java运行的过程中，对于任何一个类，都能查看到这个类所有的属性和方法。对于任何一个实例or对象，都能调用他所有的方法和属性。允许你运行时类信息访问，动态方法调用，动态对象创建，以及对于私有字段的访问。</p>
+<h1 id="注解的原理-1"><a href="#注解的原理-1" class="headerlink" title="注解的原理"></a>注解的原理</h1><p>注解是一种继承自Annotiation接口的特殊接口，底层实现依赖于java的反射机制。</p>
+<h1 id="ArrayList类具体是哪里不安全"><a href="#ArrayList类具体是哪里不安全" class="headerlink" title="ArrayList类具体是哪里不安全"></a>ArrayList类具体是哪里不安全</h1><ul>
+<li>部分值为null</li>
+<li>添加的次数和size次数不一样</li>
+<li>越界</li>
+</ul>
+<h1 id="sleep和wait的区别"><a href="#sleep和wait的区别" class="headerlink" title="sleep和wait的区别"></a>sleep和wait的区别</h1><p>所属的类不同，前者属于thread，后者属于object类</p>
+<p>一个是静态方法，一个是实例方法</p>
+<p>对于锁释放的情况，调用前者不会释放锁，后者会释放锁</p>
+<p>sleep可以在任何位置直接调用，而wait因为是实例方法，只能在同步块或者同步方法内部调用</p>
+<p>sleep休眠时间结束之后，线程自动恢复到就绪状态。wait还需要等待相关方法调用</p>
+<h1 id="如何停止一个线程"><a href="#如何停止一个线程" class="headerlink" title="如何停止一个线程"></a>如何停止一个线程</h1><p>共享标志位轮询主动终止</p>
+<p>Future的cancel方法</p>
+<p>调用中断机制实现中断</p>
+<p>资源关闭</p>
+<h1 id="对象头"><a href="#对象头" class="headerlink" title="对象头"></a>对象头</h1><p>在jvm当中，每个对象的内存布局主要由两部分组成</p>
+<ul>
+<li>Mark Word；用于存储对象运行时的数据，包括GC分代，哈希码，锁状态等等</li>
+<li>Klass Pointer；指向对象类型的元数据</li>
+</ul>
+<p>Mark Word是实现Synchronized的锁膨胀的关键</p>
+<p>在四种锁膨胀状态下，他会逐渐存储不同的信息</p>
+<ul>
+<li>无锁；存储修饰的对象的哈希码和分代信息</li>
+<li>偏向锁，先备份当前对象的无锁状态，然后保存能够获取该锁的线程ID</li>
+<li>轻量级锁，备份当前对象的无锁状态，通过cas操作尝试将对象头中的Mark Word更新为指向自己的指针</li>
+<li>重量级锁，轻量级锁竞争失败就膨胀为重量级锁</li>
+</ul>
+<hr>
+<h1 id="偏向锁到轻量锁"><a href="#偏向锁到轻量锁" class="headerlink" title="偏向锁到轻量锁"></a>偏向锁到轻量锁</h1><p>你的理解<strong>基本正确</strong>，但偏向锁和轻量级锁的细节稍有不同。我来帮你更精确地梳理它们的加锁过程，并指出关键区别：</p>
+<hr>
+<h3 id="1-偏向锁（Biased-Locking）"><a href="#1-偏向锁（Biased-Locking）" class="headerlink" title="1. 偏向锁（Biased Locking）"></a><strong>1. 偏向锁（Biased Locking）</strong></h3><h4 id="核心特点"><a href="#核心特点" class="headerlink" title="核心特点"></a><strong>核心特点</strong></h4><ul>
+<li><strong>适用场景</strong>：只有一个线程反复访问同步块。</li>
+<li><strong>优化目标</strong>：完全避免同步开销（连 CAS 都不需要）。</li>
+<li><strong>对象头变化</strong>：直接存储<strong>线程ID</strong>，而非锁记录指针。</li>
+</ul>
+<h4 id="加锁流程"><a href="#加锁流程" class="headerlink" title="加锁流程"></a><strong>加锁流程</strong></h4><ol>
+<li><strong>初始状态（无锁）</strong>  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Mark Word: | unused(54bit) | age(4bit) | biased_flag(1, 表示可偏向) | lock_flag(01) |</span><br></pre></td></tr></table></figure></li>
+<li><strong>首次加锁（CAS 设置偏向线程ID）</strong>  <ul>
+<li>检查<code>biased_flag</code>是否为 1（可偏向）且线程ID为空。  </li>
+<li><strong>CAS 将 Mark Word 替换为当前线程ID</strong>（并保留分代年龄等元数据）：  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Mark Word: | threadID(54bit) | epoch(2bit) | age(4bit) | biased_flag(1) | lock_flag(01) |</span><br></pre></td></tr></table></figure></li>
+<li><strong>不需要备份原 Mark Word</strong>（因为未覆盖元数据，线程ID直接存入空闲位）。</li>
+</ul>
+</li>
+<li><strong>后续加锁</strong>  <ul>
+<li>检查 Mark Word 中的线程ID是否为本线程：  <ul>
+<li><strong>是</strong>：直接进入同步块（无任何原子操作）。  </li>
+<li><strong>否</strong>：撤销偏向锁，可能升级为轻量级锁。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+<h4 id="关键区别"><a href="#关键区别" class="headerlink" title="关键区别"></a><strong>关键区别</strong></h4><ul>
+<li><strong>不依赖 Lock Record</strong>，线程ID直接嵌入 Mark Word。  </li>
+<li><strong>无 CAS 竞争</strong>（只有首次设置线程ID需要 CAS）。  </li>
+<li><strong>不备份原 Mark Word</strong>（因为未破坏元数据）。</li>
+</ul>
+<hr>
+<h3 id="2-轻量级锁（Thin-Lock）"><a href="#2-轻量级锁（Thin-Lock）" class="headerlink" title="2. 轻量级锁（Thin Lock）"></a><strong>2. 轻量级锁（Thin Lock）</strong></h3><h4 id="核心特点-1"><a href="#核心特点-1" class="headerlink" title="核心特点"></a><strong>核心特点</strong></h4><ul>
+<li><strong>适用场景</strong>：多个线程交替访问同步块，但无激烈竞争。  </li>
+<li><strong>优化目标</strong>：用 CAS 代替操作系统互斥锁。  </li>
+<li><strong>对象头变化</strong>：存储指向<strong>线程栈中 Lock Record 的指针</strong>。</li>
+</ul>
+<h4 id="加锁流程-1"><a href="#加锁流程-1" class="headerlink" title="加锁流程"></a><strong>加锁流程</strong></h4><ol>
+<li><strong>初始状态（无锁或偏向锁已撤销）</strong>  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Mark Word: | hashcode(31bit) | age(4bit) | lock_flag(01) |</span><br></pre></td></tr></table></figure></li>
+<li><strong>创建 Lock Record</strong>  <ul>
+<li>JVM 在当前线程栈帧中分配 Lock Record。  </li>
+<li><strong>备份原 Mark Word 到 Lock Record 的 <code>Displaced Mark Word</code> 字段</strong>（必须备份，因为 CAS 会覆盖整个 Mark Word）。</li>
+</ul>
+</li>
+<li><strong>CAS 竞争锁</strong>  <ul>
+<li>尝试将 Mark Word 更新为<strong>指向 Lock Record 的指针</strong>，并标记为轻量级锁（<code>00</code>）：  <figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Mark Word: | pointer_to_LockRecord(62bit) | lock_flag(00) |</span><br></pre></td></tr></table></figure></li>
+<li><strong>成功</strong>：线程获得锁。  </li>
+<li><strong>失败</strong>：说明其他线程已竞争，触发锁膨胀（升级为重量级锁）。</li>
+</ul>
+</li>
+</ol>
+<h4 id="关键区别-1"><a href="#关键区别-1" class="headerlink" title="关键区别"></a><strong>关键区别</strong></h4><ul>
+<li><strong>必须备份原 Mark Word</strong>（因为 CAS 会完全覆盖它）。  </li>
+<li><strong>依赖 Lock Record</strong> 存储原状态，解锁时需恢复。  </li>
+<li><strong>通过 CAS 竞争</strong>（而偏向锁仅在首次设置线程ID时用 CAS）。</li>
+</ul>
+<hr>
+<h3 id="3-你的陈述-vs-实际情况"><a href="#3-你的陈述-vs-实际情况" class="headerlink" title="3. 你的陈述 vs 实际情况"></a><strong>3. 你的陈述 vs 实际情况</strong></h3><table>
+<thead>
+<tr>
+<th>你的说法</th>
+<th>修正说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>偏向锁：备份无锁状态</strong></td>
+<td>❌ 偏向锁<strong>不备份</strong> Mark Word，而是直接写入线程ID（保留元数据）。</td>
+</tr>
+<tr>
+<td><strong>偏向锁：保存线程ID</strong></td>
+<td>✅ 正确。线程ID直接存入 Mark Word 的高位。</td>
+</tr>
+<tr>
+<td><strong>轻量级锁：备份无锁状态</strong></td>
+<td>✅ 正确。原 Mark Word 存入 Lock Record 的 <code>Displaced Mark Word</code>。</td>
+</tr>
+<tr>
+<td><strong>轻量级锁：CAS 更新为指向自己的指针</strong></td>
+<td>✅ 正确。对象头改为指向线程栈中的 Lock Record。</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="4-为什么设计这样的差异？"><a href="#4-为什么设计这样的差异？" class="headerlink" title="4. 为什么设计这样的差异？"></a><strong>4. 为什么设计这样的差异？</strong></h3><ol>
+<li><p><strong>偏向锁</strong>：  </p>
+<ul>
+<li>针对<strong>单线程重复加锁</strong>的场景，连 CAS 都想省去。  </li>
+<li>线程ID直接嵌入 Mark Word，无需额外存储。</li>
+</ul>
+</li>
+<li><p><strong>轻量级锁</strong>：  </p>
+<ul>
+<li>针对<strong>短时间多线程交替访问</strong>，需通过 CAS 实现竞争。  </li>
+<li>备份原 Mark Word 是必须的，因为 CAS 会破坏原有数据（如哈希码）。</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="5-完整流程图解"><a href="#5-完整流程图解" class="headerlink" title="5. 完整流程图解"></a><strong>5. 完整流程图解</strong></h3><h4 id="偏向锁加锁"><a href="#偏向锁加锁" class="headerlink" title="偏向锁加锁"></a><strong>偏向锁加锁</strong></h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">初始 Mark Word: [unused][age][biased=1][lock=01]</span><br><span class="line">线程A首次加锁:</span><br><span class="line">  CAS 替换为: [threadA_ID][epoch][age][biased=1][lock=01]</span><br><span class="line">后续加锁:</span><br><span class="line">  检查线程ID是否为A → 是则直接进入同步块。</span><br></pre></td></tr></table></figure>
+
+<h4 id="轻量级锁加锁"><a href="#轻量级锁加锁" class="headerlink" title="轻量级锁加锁"></a><strong>轻量级锁加锁</strong></h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">初始 Mark Word: [hashcode][age][lock=01]</span><br><span class="line">线程A加锁:</span><br><span class="line">  1. 栈中创建 Lock Record，备份原 Mark Word。</span><br><span class="line">  2. CAS 替换为: [pointer_to_LockRecord][lock=00]</span><br><span class="line">  成功 → 获得锁；失败 → 锁膨胀。</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a><strong>总结</strong></h3><ul>
+<li><strong>偏向锁</strong>：不备份，直接存线程ID，适合单线程场景。  </li>
+<li><strong>轻量级锁</strong>：备份原数据，CAS 竞争锁记录指针，适合低竞争场景。  </li>
+<li><strong>你的理解大部分正确</strong>，只需修正偏向锁的备份问题。</li>
+</ul>
+<p>这样设计是为了在不同竞争强度下，以最小开销实现线程安全。</p>
+<h1 id="轻量级锁到底是什么个过程"><a href="#轻量级锁到底是什么个过程" class="headerlink" title="轻量级锁到底是什么个过程"></a>轻量级锁到底是什么个过程</h1><p>竞争过程的出现，会让偏向锁膨胀成轻量级锁。主要的阐述点就是竞争的流程。一个线程想要获取锁，首先在自己的线程内部创建一个锁记录，用来备份偏向锁的对象头。然后线程使用cas操作尝试修改对象头的指针指向，尝试更改为指向锁的记录</p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Allimac</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2025/04/22/JavaBasic8Gu/">http://example.com/2025/04/22/JavaBasic8Gu/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">AllimacBlog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E5%85%AB%E8%82%A1/">八股</a><a class="post-meta__tags" href="/tags/Java%E5%9F%BA%E7%A1%80%E5%85%AB%E8%82%A1/">Java基础八股</a></div><div class="post-share"><div class="social-share" data-image="/img/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related full-width" href="/2025/04/22/Hot100-1/" title="Hot100-1"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">Hot100-1</div></div><div class="info-2"><div class="info-item-1">lc1 两数之和 给定一个整数数组 nums 和一个整数目标值 target，请你在该数组中找出 和为目标值 target 的那 两个 整数，并返回它们的数组下标。 你可以假设每种输入只会对应一个答案，并且你不能使用两次相同的元素。 你可以按任意顺序返回答案。  暴力很容易想，直接遍历数组的过程中，检查没有遍历的部分是否存在能和当前数字加和为目标值的数字就可以了。这是因为题目当中有不能使用两次相同的元素的条件 既然这样，考虑使用hashmap天然去重 一个错误的思路： 1234567891011121314class Solution &#123;    public int[] twoSum(int[] nums, int target) &#123;        Map&lt;Integer,Integer&gt; map=new HashMap&lt;&gt;();        for(int i=0;i&lt;nums.length;i++)&#123;            map.put(nums[i],i);        &#125;       ...</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/03/15/A-First-Look-At-Zookeeper/" title="A-First-Look-At-Zookeeper"><img class="cover" src="https://s21.ax1x.com/2025/03/15/pEaaHz9.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-03-15</div><div class="info-item-2">A-First-Look-At-Zookeeper</div></div><div class="info-2"><div class="info-item-1">初探Zookeeper，一些关于Zookeeper的问题</div></div></div></a><a class="pagination-related" href="/2025/03/15/A-First-Look-At-RocketMQ/" title="A-First-Look-At-RocketMQ"><img class="cover" src="https://s21.ax1x.com/2025/03/15/pEaULE8.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-03-15</div><div class="info-item-2">A-First-Look-At-RocketMQ</div></div><div class="info-2"><div class="info-item-1">初探RocketMQ，一些关于RocketMQ的问题</div></div></div></a><a class="pagination-related" href="/2025/03/15/A-First-Look-At-Kafka/" title="A-First-Look-At-Kafka"><img class="cover" src="https://s21.ax1x.com/2025/03/15/pEaUHDP.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-03-15</div><div class="info-item-2">A-First-Look-At-Kafka</div></div><div class="info-2"><div class="info-item-1">初探Kafka，一些关于Kafka的问题</div></div></div></a><a class="pagination-related" href="/2025/03/22/BloomFilter/" title="BloomFilter"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-03-22</div><div class="info-item-2">BloomFilter</div></div><div class="info-2"><div class="info-item-1">布隆过滤器入门</div></div></div></a><a class="pagination-related" href="/2025/03/15/Push-Pull-ModeInMQ/" title="Push-Pull-ModeInMQ"><img class="cover" src="https://s21.ax1x.com/2025/03/15/pEaaqMR.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-03-15</div><div class="info-item-2">Push-Pull-ModeInMQ</div></div><div class="info-2"><div class="info-item-1">消息队列当中的推拉模式</div></div></div></a><a class="pagination-related" href="/2025/03/22/Redis-High-Availability-architecture/" title="Redis-High-Availability-architecture"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-03-22</div><div class="info-item-2">Redis-High-Availability-architecture</div></div><div class="info-2"><div class="info-item-1">高可用架构实现</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Allimac</div><div class="author-info-description">华丽的仓库存放着我简陋的思想</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">64</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">67</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">8</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/AillemaCc"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/AillemaCc" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="http://www.swindle.icu/#/Home" target="_blank" title="曾经的博客"><i class="fas fa-envelope" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">这里是小梦一场的大床</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88java%E8%A7%A3%E9%87%8A%E5%92%8C%E7%BC%96%E8%AF%91%E9%83%BD%E6%9C%89"><span class="toc-number">1.</span> <span class="toc-text">为什么java解释和编译都有</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B%E8%BD%AC%E6%8D%A2%E6%96%B9%E5%BC%8F%E4%BD%A0%E7%9F%A5%E9%81%93%E5%93%AA%E4%BA%9B%EF%BC%9F"><span class="toc-number">2.</span> <span class="toc-text">数据类型转换方式你知道哪些？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Java%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E6%9C%89Integer%EF%BC%9F"><span class="toc-number">3.</span> <span class="toc-text">Java为什么要有Integer？</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A4%9A%E6%80%81%E4%BD%93%E7%8E%B0%E5%9C%A8%E5%93%AA%E5%87%A0%E4%B8%AA%E6%96%B9%E9%9D%A2"><span class="toc-number">4.</span> <span class="toc-text">多态体现在哪几个方面</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%8A%BD%E8%B1%A1%E7%B1%BB%E5%92%8C%E6%99%AE%E9%80%9A%E7%B1%BB%E5%8C%BA%E5%88%AB"><span class="toc-number">5.</span> <span class="toc-text">抽象类和普通类区别</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%8A%BD%E8%B1%A1%E7%B1%BB%E5%92%8C%E6%8E%A5%E5%8F%A3%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">6.</span> <span class="toc-text">抽象类和接口的区别</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%8A%BD%E8%B1%A1%E7%B1%BB%E5%8F%AF%E4%BB%A5%E8%A2%AB%E5%AE%9E%E4%BE%8B%E5%8C%96%E5%90%97"><span class="toc-number">7.</span> <span class="toc-text">抽象类可以被实例化吗</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#final%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-number">8.</span> <span class="toc-text">final的作用</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E6%B3%9B%E5%9E%8B"><span class="toc-number">9.</span> <span class="toc-text">什么是泛型</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%B3%A8%E8%A7%A3%E7%9A%84%E5%8E%9F%E7%90%86"><span class="toc-number">10.</span> <span class="toc-text">注解的原理</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%BC%82%E5%B8%B8"><span class="toc-number">11.</span> <span class="toc-text">异常</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Stream%E6%B5%81%E7%9A%84%E5%B9%B6%E8%A1%8CAPI%E6%98%AF%E4%BB%80%E4%B9%88"><span class="toc-number">12.</span> <span class="toc-text">Stream流的并行API是什么</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%8E%E4%B9%88%E6%8A%8A%E4%B8%80%E4%B8%AA%E5%AF%B9%E8%B1%A1%E4%BB%8E%E4%B8%80%E4%B8%AAjvm%E8%BD%AC%E7%A7%BB%E5%88%B0%E5%8F%A6%E4%B8%80%E4%B8%AAjvm"><span class="toc-number">13.</span> <span class="toc-text">怎么把一个对象从一个jvm转移到另一个jvm</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B0%86%E5%AF%B9%E8%B1%A1%E8%BD%AC%E6%8D%A2%E4%B8%BA%E4%BA%8C%E8%BF%9B%E5%88%B6%E5%AD%97%E8%8A%82%E6%B5%81%E6%80%8E%E4%B9%88%E5%AE%9E%E7%8E%B0"><span class="toc-number">14.</span> <span class="toc-text">将对象转换为二进制字节流怎么实现</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Java%E5%B9%B6%E5%8F%91%E5%BD%93%E4%B8%AD%E7%9A%84%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8"><span class="toc-number">15.</span> <span class="toc-text">Java并发当中的线程安全</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%81%8F%E5%90%91%E9%94%81%E5%8D%87%E7%BA%A7%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81%E7%9A%84%E8%BF%87%E7%A8%8B"><span class="toc-number">16.</span> <span class="toc-text">偏向锁升级轻量级锁的过程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%B0%83%E7%94%A8interrupt%E5%A6%82%E4%BD%95%E8%AE%A9%E7%BA%BF%E7%A8%8B%E6%8A%9B%E5%87%BA%E5%BC%82%E5%B8%B8"><span class="toc-number">17.</span> <span class="toc-text">调用interrupt如何让线程抛出异常</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%8D%E5%90%8C%E7%9A%84%E7%BA%BF%E7%A8%8B%E5%A6%82%E4%BD%95%E9%80%9A%E4%BF%A1"><span class="toc-number">18.</span> <span class="toc-text">不同的线程如何通信</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%8E%E4%B9%88%E4%BF%9D%E8%AF%81%E5%A4%9A%E7%BA%BF%E7%A8%8B%E5%AE%89%E5%85%A8"><span class="toc-number">19.</span> <span class="toc-text">怎么保证多线程安全</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#java%E5%B8%B8%E7%94%A8%E7%9A%84%E9%94%81-%E4%BB%A5%E5%8F%8A%E9%94%81%E5%9C%BA%E6%99%AF"><span class="toc-number">20.</span> <span class="toc-text">java常用的锁 以及锁场景</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#countdownlatch%E6%98%AF%E5%81%9A%E4%BB%80%E4%B9%88%E7%9A%84"><span class="toc-number">21.</span> <span class="toc-text">countdownlatch是做什么的</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#synchronized%E5%92%8Creentrantlock%E7%9A%84%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86"><span class="toc-number">22.</span> <span class="toc-text">synchronized和reentrantlock的工作原理</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%AE%80%E5%8D%95%E8%B0%88%E8%B0%88aqs"><span class="toc-number">23.</span> <span class="toc-text">简单谈谈aqs</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E7%94%A8aqs%E5%AE%9E%E7%8E%B0%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E7%9A%84%E5%85%AC%E5%B9%B3%E9%94%81"><span class="toc-number">24.</span> <span class="toc-text">如何用aqs实现一个简单的公平锁</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Threadlocal%E4%BD%9C%E7%94%A8-%E5%8E%9F%E7%90%86-kv%E6%98%AF%E5%95%A5-%E4%BC%9A%E5%87%BA%E7%8E%B0%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98-%E6%80%8E%E4%B9%88%E8%A7%A3%E5%86%B3"><span class="toc-number">25.</span> <span class="toc-text">Threadlocal作用 原理 kv是啥 会出现什么问题 怎么解决</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#jvm%E5%86%85%E5%AD%98%E6%A8%A1%E5%9E%8B%E7%9A%84%E6%A0%88"><span class="toc-number">26.</span> <span class="toc-text">jvm内存模型的栈</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E5%8C%BA%E7%9A%84%E6%96%B9%E6%B3%95%E6%89%A7%E8%A1%8C%E8%BF%87%E7%A8%8B%E6%98%AF%E4%BB%80%E4%B9%88%E6%A0%B7%E7%9A%84"><span class="toc-number">27.</span> <span class="toc-text">方法区的方法执行过程是什么样的</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E5%8C%BA%E5%BD%93%E4%B8%AD%E8%BF%98%E6%9C%89%E4%BB%80%E4%B9%88%E4%B8%9C%E8%A5%BF"><span class="toc-number">28.</span> <span class="toc-text">方法区当中还有什么东西</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%88%9B%E5%BB%BA%E5%AF%B9%E8%B1%A1%E7%9A%84%E8%BF%87%E7%A8%8B"><span class="toc-number">29.</span> <span class="toc-text">创建对象的过程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%B1%BB%E5%8A%A0%E8%BD%BD%E7%9A%84%E8%BF%87%E7%A8%8B"><span class="toc-number">30.</span> <span class="toc-text">类加载的过程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%97%B6%E5%80%99%E5%87%BA%E7%8E%B0%E8%87%AA%E5%8A%A8%E8%A3%85%E7%AE%B1"><span class="toc-number">31.</span> <span class="toc-text">什么时候出现自动装箱</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E6%9C%89%E5%8C%85%E8%A3%85%E7%B1%BB"><span class="toc-number">32.</span> <span class="toc-text">为什么要有包装类</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%B0%81%E8%A3%85-%E7%BB%A7%E6%89%BF-%E5%A4%9A%E6%80%81"><span class="toc-number">33.</span> <span class="toc-text">封装 继承 多态</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%8A%BD%E8%B1%A1%E7%B1%BB%E5%92%8C%E6%8E%A5%E5%8F%A3%E7%9A%84%E5%8C%BA%E5%88%AB-1"><span class="toc-number">34.</span> <span class="toc-text">抽象类和接口的区别</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E6%B3%9B%E5%9E%8B-1"><span class="toc-number">35.</span> <span class="toc-text">什么是泛型</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E5%8F%8D%E5%B0%84"><span class="toc-number">36.</span> <span class="toc-text">什么是反射</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%B3%A8%E8%A7%A3%E7%9A%84%E5%8E%9F%E7%90%86-1"><span class="toc-number">37.</span> <span class="toc-text">注解的原理</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#ArrayList%E7%B1%BB%E5%85%B7%E4%BD%93%E6%98%AF%E5%93%AA%E9%87%8C%E4%B8%8D%E5%AE%89%E5%85%A8"><span class="toc-number">38.</span> <span class="toc-text">ArrayList类具体是哪里不安全</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#sleep%E5%92%8Cwait%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="toc-number">39.</span> <span class="toc-text">sleep和wait的区别</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E5%81%9C%E6%AD%A2%E4%B8%80%E4%B8%AA%E7%BA%BF%E7%A8%8B"><span class="toc-number">40.</span> <span class="toc-text">如何停止一个线程</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%AF%B9%E8%B1%A1%E5%A4%B4"><span class="toc-number">41.</span> <span class="toc-text">对象头</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%81%8F%E5%90%91%E9%94%81%E5%88%B0%E8%BD%BB%E9%87%8F%E9%94%81"><span class="toc-number">42.</span> <span class="toc-text">偏向锁到轻量锁</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%81%8F%E5%90%91%E9%94%81%EF%BC%88Biased-Locking%EF%BC%89"><span class="toc-number">42.0.1.</span> <span class="toc-text">1. 偏向锁（Biased Locking）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E7%89%B9%E7%82%B9"><span class="toc-number">42.0.1.1.</span> <span class="toc-text">核心特点</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8A%A0%E9%94%81%E6%B5%81%E7%A8%8B"><span class="toc-number">42.0.1.2.</span> <span class="toc-text">加锁流程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E5%8C%BA%E5%88%AB"><span class="toc-number">42.0.1.3.</span> <span class="toc-text">关键区别</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81%EF%BC%88Thin-Lock%EF%BC%89"><span class="toc-number">42.0.2.</span> <span class="toc-text">2. 轻量级锁（Thin Lock）</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E7%89%B9%E7%82%B9-1"><span class="toc-number">42.0.2.1.</span> <span class="toc-text">核心特点</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8A%A0%E9%94%81%E6%B5%81%E7%A8%8B-1"><span class="toc-number">42.0.2.2.</span> <span class="toc-text">加锁流程</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E5%8C%BA%E5%88%AB-1"><span class="toc-number">42.0.2.3.</span> <span class="toc-text">关键区别</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E4%BD%A0%E7%9A%84%E9%99%88%E8%BF%B0-vs-%E5%AE%9E%E9%99%85%E6%83%85%E5%86%B5"><span class="toc-number">42.0.3.</span> <span class="toc-text">3. 你的陈述 vs 实际情况</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%AE%BE%E8%AE%A1%E8%BF%99%E6%A0%B7%E7%9A%84%E5%B7%AE%E5%BC%82%EF%BC%9F"><span class="toc-number">42.0.4.</span> <span class="toc-text">4. 为什么设计这样的差异？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E5%AE%8C%E6%95%B4%E6%B5%81%E7%A8%8B%E5%9B%BE%E8%A7%A3"><span class="toc-number">42.0.5.</span> <span class="toc-text">5. 完整流程图解</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%81%8F%E5%90%91%E9%94%81%E5%8A%A0%E9%94%81"><span class="toc-number">42.0.5.1.</span> <span class="toc-text">偏向锁加锁</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81%E5%8A%A0%E9%94%81"><span class="toc-number">42.0.5.2.</span> <span class="toc-text">轻量级锁加锁</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">42.0.6.</span> <span class="toc-text">总结</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%BD%BB%E9%87%8F%E7%BA%A7%E9%94%81%E5%88%B0%E5%BA%95%E6%98%AF%E4%BB%80%E4%B9%88%E4%B8%AA%E8%BF%87%E7%A8%8B"><span class="toc-number">43.</span> <span class="toc-text">轻量级锁到底是什么个过程</span></a></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/22/JavaBasic8Gu/" title="JavaBasic8Gu">JavaBasic8Gu</a><time datetime="2025-04-22T10:30:18.000Z" title="发表于 2025-04-22 18:30:18">2025-04-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/22/Hot100-1/" title="Hot100-1">Hot100-1</a><time datetime="2025-04-22T10:22:09.000Z" title="发表于 2025-04-22 18:22:09">2025-04-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/22/TechDuck200/" title="TechDuck200">TechDuck200</a><time datetime="2025-04-22T10:20:48.000Z" title="发表于 2025-04-22 18:20:48">2025-04-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/22/12306Business-2/" title="12306Business-2">12306Business-2</a><time datetime="2025-04-22T10:14:27.000Z" title="发表于 2025-04-22 18:14:27">2025-04-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/22/12306Business-1/" title="12306Business-1">12306Business-1</a><time datetime="2025-04-22T10:10:07.000Z" title="发表于 2025-04-22 18:10:07">2025-04-22</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2024 - 2025 By Allimac</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
