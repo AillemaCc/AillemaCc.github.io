@@ -1,0 +1,744 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>12306Impl-3 | AllimacBlog</title><meta name="author" content="Allimac"><meta name="copyright" content="Allimac"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="生成分布式雪花ID；Hutool线程池创建源码解析；项目线程池场景解析">
+<meta property="og:type" content="article">
+<meta property="og:title" content="12306Impl-3">
+<meta property="og:url" content="http://example.com/2025/04/22/12306Impl-3/index.html">
+<meta property="og:site_name" content="AllimacBlog">
+<meta property="og:description" content="生成分布式雪花ID；Hutool线程池创建源码解析；项目线程池场景解析">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/avatar.png">
+<meta property="article:published_time" content="2025-04-22T10:03:30.000Z">
+<meta property="article:modified_time" content="2025-04-22T10:06:02.157Z">
+<meta property="article:author" content="Allimac">
+<meta property="article:tag" content="线程池">
+<meta property="article:tag" content="12306技术梳理">
+<meta property="article:tag" content="分布式雪花算法ID">
+<meta property="article:tag" content="设计模式-构建者模式">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/avatar.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "12306Impl-3",
+  "url": "http://example.com/2025/04/22/12306Impl-3/",
+  "image": "http://example.com/img/avatar.png",
+  "datePublished": "2025-04-22T10:03:30.000Z",
+  "dateModified": "2025-04-22T10:06:02.157Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Allimac",
+      "url": "http://example.com/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/faviconcute.png"><link rel="canonical" href="http://example.com/2025/04/22/12306Impl-3/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '12306Impl-3',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">61</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">65</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 链接</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></li><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></li></ul></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/nature_top_image.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">AllimacBlog</span></a><a class="nav-page-title" href="/"><span class="site-name">12306Impl-3</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 链接</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></li><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></li></ul></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">12306Impl-3</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-04-22T10:03:30.000Z" title="发表于 2025-04-22 18:03:30">2025-04-22</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-04-22T10:06:02.157Z" title="更新于 2025-04-22 18:06:02">2025-04-22</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/12306/">12306</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">7.7k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>26分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="如何生成分布式雪花算法ID"><a href="#如何生成分布式雪花算法ID" class="headerlink" title="如何生成分布式雪花算法ID"></a>如何生成分布式雪花算法ID</h1><p>首先，分布式系统中，有一些需要使用全局唯一 ID 的场景，这种时候为了防止 ID 冲突可以使用 36 位的 UUID，但是 UUID 有一些缺点，首先他相对比较长，另外 UUID 一般是无序的。</p>
+<p><strong>有些时候我们希望能使用一种简单些的 ID，并且希望 ID 能够按照时间有序生成。</strong></p>
+<h2 id="什么是雪花算法"><a href="#什么是雪花算法" class="headerlink" title="什么是雪花算法"></a>什么是雪花算法</h2><p>Snowflake 中文的意思是雪花，所以常被称为雪花算法，是 Twitter 开源的分布式 ID 生成算法。</p>
+<p>Twitter 雪花算法生成后是一个 <strong>64bit 的 long 型</strong>的数值，组成部分引入了<strong>时间戳</strong>，<strong>基本保持了自增</strong>。</p>
+<p><strong>SnowFlake 算法的优点：</strong></p>
+<ol>
+<li>高性能高可用：生成时不依赖于数据库，完全在内存中生成。</li>
+<li>高吞吐：每秒钟能生成数百万的自增 ID。</li>
+<li>ID 自增：存入数据库中，索引效率高。</li>
+</ol>
+<p><strong>SnowFlake 算法的缺点：</strong></p>
+<p>依赖与系统时间的一致性，如果系统时间被回调，或者改变，可能会造成 ID 冲突或者重复。</p>
+<h3 id="1-雪花算法组成"><a href="#1-雪花算法组成" class="headerlink" title="1. 雪花算法组成"></a>1. 雪花算法组成</h3><p>snowflake 结构如下图所示：</p>
+<p><a target="_blank" rel="noopener" href="https://imgse.com/i/pE41brV"><img src="https://s21.ax1x.com/2025/04/19/pE41brV.png" alt="pE41brV.png"></a></p>
+<p>包含四个组成部分：</p>
+<p><strong>不使用</strong>：1bit，最高位是符号位，0 表示正，1 表示负，固定为 0。</p>
+<p><strong>时间戳</strong>：41bit，毫秒级的时间戳（41 位的长度可以使用 69 年）。</p>
+<p><strong>标识位</strong>：5bit 数据中心 ID，5bit 工作机器 ID，两个标识位组合起来最多可以支持部署 1024 个节点</p>
+<p><strong>序列号</strong>：12bit 递增序列号，表示节点毫秒内生成重复，通过序列号表示唯一，12bit 每毫秒可产生 4096 个 ID。</p>
+<p>通过序列号 1 毫秒可以产生 4096 个不重复 ID，则 1 秒可以生成 4096 * 1000 &#x3D; 409w ID。</p>
+<p>默认的雪花算法是 64 bit，具体的长度可以自行配置。如果希望运行更久，<strong>增加时间戳的位数</strong>；如果需要支持更多节点部署，<strong>增加标识位长度</strong>；如果并发很高，<strong>增加序列号位数。</strong></p>
+<p><strong>总结</strong>：雪花算法并不是一成不变的，可以根据系统内具体场景进行定制。</p>
+<h3 id="2-雪花算法适用场景"><a href="#2-雪花算法适用场景" class="headerlink" title="2. 雪花算法适用场景"></a>2. 雪花算法适用场景</h3><p>因为雪花算法有序自增，保障了 MySQL 中 B+ Tree 索引结构插入高性能。</p>
+<p>所以，日常业务使用中，雪花算法更多是被应用在数据库的主键 ID 和业务关联主键。</p>
+<h2 id="雪花算法生成-ID-重复问题"><a href="#雪花算法生成-ID-重复问题" class="headerlink" title="雪花算法生成 ID 重复问题"></a>雪花算法生成 ID 重复问题</h2><p>假设：一个订单微服务，通过雪花算法生成 ID，共部署三个节点，标识位一致。 此时有 200 并发，均匀散布三个节点，三个节点同一毫秒同一序列号下生成 ID，那么就会产生重复 ID。</p>
+<blockquote>
+<p>它们的ID生成逻辑完全一致：</p>
+<ul>
+<li><strong>时间戳</strong>：同一毫秒内相同。</li>
+<li><strong>机器标识</strong>：完全相同。</li>
+<li><strong>序列号</strong>：从0开始自增。</li>
+</ul>
+<p>此时，三个节点在同一毫秒内生成的ID仅依赖<strong>序列号</strong>，而序列号是独立维护的（每个节点有自己的序列号计数器）。如果并发请求导致：</p>
+<ul>
+<li>三个节点在同一毫秒内生成ID。</li>
+<li>三个节点的序列号计数器<strong>恰好同时从0开始</strong>（如刚启动或序列号耗尽归零）。</li>
+</ul>
+<p>则会生成完全相同的ID。</p>
+</blockquote>
+<h3 id="前提条件"><a href="#前提条件" class="headerlink" title="前提条件"></a>前提条件</h3><ol>
+<li>服务通过集群的方式部署，其中部分机器标识位一致。</li>
+<li>业务存在一定的并发量，没有并发量无法触发重复问题。</li>
+<li>生成 ID 的时机：同一毫秒下的序列号一致。</li>
+</ol>
+<h3 id="1-标识位如何定义"><a href="#1-标识位如何定义" class="headerlink" title="1. 标识位如何定义"></a>1. 标识位如何定义</h3><p>如果能保证标识位不重复，那么雪花 ID 也不会重复。</p>
+<p>通过上面的案例，知道了 ID 重复的必要条件。如果要避免服务内产生重复的 ID，那么就需要从标识位上动文章。</p>
+<p>我们先看看开源框架中使用雪花算法，如何定义标识位。</p>
+<p>Mybatis-Plus v3.4.2 雪花算法实现类 Sequence，提供了两种构造方法：无参构造，自动生成 dataCenterId 和 workerId；有参构造，创建 Sequence 时明确指定标识位。</p>
+<p>Hutool v5.7.9 参照了 Mybatis-Plus dataCenterId 和 workerId 生成方案，提供了默认实现</p>
+<p>一起看下 Sequence 的创建默认无参构造，如何生成 dataCenterId 和 workerId。</p>
+<h4 id="dataCenterId"><a href="#dataCenterId" class="headerlink" title="dataCenterId"></a>dataCenterId</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">long</span> <span class="title function_">getDataCenterId</span><span class="params">(<span class="type">long</span> maxDatacenterId)</span> &#123;</span><br><span class="line">    <span class="type">long</span> <span class="variable">id</span> <span class="operator">=</span> <span class="number">1L</span>;</span><br><span class="line">    <span class="keyword">final</span> <span class="type">byte</span>[] mac = NetUtil.getLocalHardwareAddress();</span><br><span class="line">    <span class="keyword">if</span> (<span class="literal">null</span> != mac) &#123;</span><br><span class="line">        id = ((<span class="number">0x000000FF</span> &amp; (<span class="type">long</span>) mac[mac.length - <span class="number">2</span>])</span><br><span class="line">                | (<span class="number">0x0000FF00</span> &amp; (((<span class="type">long</span>) mac[mac.length - <span class="number">1</span>]) &lt;&lt; <span class="number">8</span>))) &gt;&gt; <span class="number">6</span>;</span><br><span class="line">        id = id % (maxDatacenterId + <span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> id;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>基于机器MAC地址生成数据中心ID（DataCenter ID）</strong></p>
+<blockquote>
+<p>这段代码的作用是<strong>基于机器MAC地址生成数据中心ID（DataCenter ID）</strong>，通常用于分布式ID生成算法（如雪花算法Snowflake）中，确保不同机器的数据中心ID唯一。以下是逐步解析：</p>
+<hr>
+<h3 id="代码解析"><a href="#代码解析" class="headerlink" title="代码解析"></a>代码解析</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">long</span> <span class="title function_">getDataCenterId</span><span class="params">(<span class="type">long</span> maxDatacenterId)</span> &#123;</span><br><span class="line">    <span class="type">long</span> <span class="variable">id</span> <span class="operator">=</span> <span class="number">1L</span>; <span class="comment">// 默认值</span></span><br><span class="line">    <span class="keyword">final</span> <span class="type">byte</span>[] mac = NetUtil.getLocalHardwareAddress(); <span class="comment">// 获取本机MAC地址</span></span><br><span class="line">    <span class="keyword">if</span> (<span class="literal">null</span> != mac) &#123;</span><br><span class="line">        <span class="comment">// 1. 取MAC地址的最后两个字节</span></span><br><span class="line">        id = ((<span class="number">0x000000FF</span> &amp; (<span class="type">long</span>) mac[mac.length - <span class="number">2</span>])      <span class="comment">// 倒数第二个字节</span></span><br><span class="line">                | (<span class="number">0x0000FF00</span> &amp; (((<span class="type">long</span>) mac[mac.length - <span class="number">1</span>]) &lt;&lt; <span class="number">8</span>))) <span class="comment">// 倒数第一个字节左移8位后合并</span></span><br><span class="line">                &gt;&gt; <span class="number">6</span>; <span class="comment">// 右移6位（相当于除以64）</span></span><br><span class="line">        <span class="comment">// 2. 取模限制范围</span></span><br><span class="line">        id = id % (maxDatacenterId + <span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> id;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="关键步骤说明"><a href="#关键步骤说明" class="headerlink" title="关键步骤说明"></a>关键步骤说明</h3><h4 id="1-获取MAC地址"><a href="#1-获取MAC地址" class="headerlink" title="1. 获取MAC地址"></a>1. <strong>获取MAC地址</strong></h4><ul>
+<li><code>NetUtil.getLocalHardwareAddress()</code> 返回本机的MAC地址（6字节的<code>byte[]</code>，如 <code>[0x00, 0x1A, 0x2B, 0x3C, 0x4D, 0x5E]</code>）。</li>
+</ul>
+<h4 id="2-提取最后两个字节"><a href="#2-提取最后两个字节" class="headerlink" title="2. 提取最后两个字节"></a>2. <strong>提取最后两个字节</strong></h4><ul>
+<li><code>mac[mac.length - 2]</code>：倒数第二个字节（如 <code>0x4D</code>）。</li>
+<li><code>mac[mac.length - 1]</code>：倒数第一个字节（如 <code>0x5E</code>）。</li>
+<li>将这两个字节合并为一个16位整数：<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(<span class="number">0x4D</span> &amp; <span class="number">0xFF</span>) | (<span class="number">0x5E</span> &lt;&lt; <span class="number">8</span>) = <span class="number">0x004D</span> | <span class="number">0x5E00</span> = <span class="number">0x5E4D</span></span><br></pre></td></tr></table></figure></li>
+</ul>
+<h4 id="3-右移6位（相当于除以64）"><a href="#3-右移6位（相当于除以64）" class="headerlink" title="3. 右移6位（相当于除以64）"></a>3. <strong>右移6位（相当于除以64）</strong></h4><ul>
+<li><code>0x5E4D &gt;&gt; 6</code> &#x3D; <code>0x179</code>（即 <code>0x5E4D / 64 = 241</code>）。</li>
+<li><strong>目的</strong>：将16位的MAC地址片段压缩到更小的范围（避免后续取模后冲突概率过高）。</li>
+</ul>
+<h4 id="4-取模运算限制范围"><a href="#4-取模运算限制范围" class="headerlink" title="4. 取模运算限制范围"></a>4. <strong>取模运算限制范围</strong></h4><ul>
+<li><code>id % (maxDatacenterId + 1)</code>：确保生成的ID不超过允许的最大值（如 <code>maxDatacenterId=31</code>，则结果范围是 <code>0~31</code>）。</li>
+</ul>
+<h4 id="5-默认值"><a href="#5-默认值" class="headerlink" title="5. 默认值"></a>5. <strong>默认值</strong></h4><ul>
+<li>如果MAC地址获取失败（<code>mac=null</code>），返回默认值 <code>1</code>。</li>
+</ul>
+<hr>
+<h3 id="为什么用MAC地址？"><a href="#为什么用MAC地址？" class="headerlink" title="为什么用MAC地址？"></a>为什么用MAC地址？</h3><ol>
+<li><strong>唯一性</strong>：MAC地址通常是全局唯一的（除非手动篡改）。</li>
+<li><strong>稳定性</strong>：服务器物理网卡一般不会频繁变更，适合作为机器标识的生成依据。</li>
+</ol>
+<hr>
+<h3 id="示例计算"><a href="#示例计算" class="headerlink" title="示例计算"></a>示例计算</h3><p>假设：</p>
+<ul>
+<li>MAC地址：<code>[0x00, 0x1A, 0x2B, 0x3C, 0x4D, 0x5E]</code>（最后两字节 <code>0x4D, 0x5E</code>）。</li>
+<li><code>maxDatacenterId = 31</code>。</li>
+</ul>
+<p>计算过程：</p>
+<ol>
+<li>合并最后两字节：<br><code>0x004D | (0x005E &lt;&lt; 8) = 0x5E4D</code>（十进制 <code>24141</code>）。</li>
+<li>右移6位：<br><code>0x5E4D &gt;&gt; 6 = 0x179</code>（即 <code>24141 / 64 = 241</code>）。</li>
+<li>取模：<br><code>241 % 32 = 17</code>（因为 <code>maxDatacenterId + 1 = 32</code>）。</li>
+</ol>
+<p>最终返回 <code>17</code>。</p>
+<hr>
+<h3 id="潜在问题"><a href="#潜在问题" class="headerlink" title="潜在问题"></a>潜在问题</h3><ol>
+<li><p><strong>MAC地址冲突</strong>：</p>
+<ul>
+<li>虚拟化环境中（如Docker&#x2F;K8s），MAC地址可能重复。</li>
+<li>解决方案：结合其他信息（如IP地址）生成唯一ID。</li>
+</ul>
+</li>
+<li><p><strong>物理网卡不可用</strong>：</p>
+<ul>
+<li>云服务器可能禁用MAC地址访问。</li>
+<li>解决方案：回退到其他唯一标识（如主机名哈希）。</li>
+</ul>
+</li>
+<li><p><strong>取模后的冲突</strong>：</p>
+<ul>
+<li>不同MAC地址计算后可能映射到相同的<code>dataCenterId</code>。</li>
+<li>优化：增加哈希函数分散度。</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="改进建议"><a href="#改进建议" class="headerlink" title="改进建议"></a>改进建议</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">long</span> <span class="title function_">getDataCenterId</span><span class="params">(<span class="type">long</span> maxDatacenterId)</span> &#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="type">InetAddress</span> <span class="variable">ip</span> <span class="operator">=</span> InetAddress.getLocalHost();</span><br><span class="line">        <span class="type">NetworkInterface</span> <span class="variable">network</span> <span class="operator">=</span> NetworkInterface.getByInetAddress(ip);</span><br><span class="line">        <span class="type">byte</span>[] mac = network.getHardwareAddress();</span><br><span class="line">        <span class="type">long</span> <span class="variable">hash</span> <span class="operator">=</span> mac != <span class="literal">null</span> ? </span><br><span class="line">            ((mac[mac.length-<span class="number">2</span>] &amp; <span class="number">0xFF</span>) | ((mac[mac.length-<span class="number">1</span>] &amp; <span class="number">0xFF</span>) &lt;&lt; <span class="number">8</span>)) : </span><br><span class="line">            ip.getHostName().hashCode();</span><br><span class="line">        <span class="keyword">return</span> Math.abs(hash) % (maxDatacenterId + <span class="number">1</span>);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        <span class="keyword">return</span> ThreadLocalRandom.current().nextLong(maxDatacenterId + <span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h3><ul>
+<li><strong>核心逻辑</strong>：通过MAC地址的最后两个字节生成唯一ID，并限制在指定范围内。</li>
+<li><strong>适用场景</strong>：分布式系统中需要稳定、唯一的机器标识时（如雪花算法的<code>datacenterId</code>）。</li>
+<li><strong>注意事项</strong>：需确保MAC地址的唯一性和可访问性，否则需备选方案。</li>
+</ul>
+</blockquote>
+<h4 id="workid"><a href="#workid" class="headerlink" title="workid"></a>workid</h4><blockquote>
+<h3 id="方法功能"><a href="#方法功能" class="headerlink" title="方法功能"></a>方法功能</h3><p>这段代码的作用是<strong>基于数据中心ID（<code>datacenterId</code>）和进程ID（PID）生成工作节点ID（<code>workerId</code>）</strong>，通常用于雪花算法（Snowflake）中，确保同一数据中心内的不同工作节点ID唯一。</p>
+<hr>
+<h3 id="代码解析-1"><a href="#代码解析-1" class="headerlink" title="代码解析"></a>代码解析</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">long</span> <span class="title function_">getWorkerId</span><span class="params">(<span class="type">long</span> datacenterId, <span class="type">long</span> maxWorkerId)</span> &#123;</span><br><span class="line">    <span class="keyword">final</span> <span class="type">StringBuilder</span> <span class="variable">mpid</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">StringBuilder</span>();</span><br><span class="line">    mpid.append(datacenterId);  <span class="comment">// 1. 拼接数据中心ID</span></span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        mpid.append(RuntimeUtil.getPid()); <span class="comment">// 2. 拼接进程PID</span></span><br><span class="line">    &#125; <span class="keyword">catch</span> (UtilException ignore) &#123;</span><br><span class="line">        <span class="comment">// 忽略异常（如果获取PID失败）</span></span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 3. 计算哈希并取模</span></span><br><span class="line">    <span class="keyword">return</span> (mpid.toString().hashCode() &amp; <span class="number">0xffff</span>) % (maxWorkerId + <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="关键步骤原理"><a href="#关键步骤原理" class="headerlink" title="关键步骤原理"></a>关键步骤原理</h3><h4 id="1-拼接唯一标识字符串"><a href="#1-拼接唯一标识字符串" class="headerlink" title="1. 拼接唯一标识字符串"></a>1. <strong>拼接唯一标识字符串</strong></h4><ul>
+<li><strong><code>datacenterId</code></strong>：传入的数据中心ID（确保不同数据中心的workerId不冲突）。</li>
+<li><strong><code>RuntimeUtil.getPid()</code></strong>：获取当前JVM进程的PID（确保同一数据中心内不同进程的workerId不冲突）。</li>
+<li>最终拼接字符串示例：<code>&quot;31742&quot;</code>（假设 <code>datacenterId=3</code>，<code>PID=1742</code>）。</li>
+</ul>
+<h4 id="2-生成哈希值"><a href="#2-生成哈希值" class="headerlink" title="2. 生成哈希值"></a>2. <strong>生成哈希值</strong></h4><ul>
+<li><code>mpid.toString().hashCode()</code>：<br>对拼接后的字符串调用Java默认的哈希算法（返回<code>int</code>类型）。<br>例如 <code>&quot;31742&quot;.hashCode()</code> 可能返回 <code>123456789</code>。</li>
+<li><code>&amp; 0xffff</code>：<br>取哈希值的低16位（相当于 <code>hashCode % 65536</code>），将结果限制在 <code>0~65535</code> 范围内。<br>例如 <code>123456789 &amp; 0xffff = 0x8EB5</code>（十进制 <code>36533</code>）。</li>
+</ul>
+<h4 id="3-取模限制范围"><a href="#3-取模限制范围" class="headerlink" title="3. 取模限制范围"></a>3. <strong>取模限制范围</strong></h4><ul>
+<li><code>% (maxWorkerId + 1)</code>：<br>将哈希值映射到 <code>[0, maxWorkerId]</code> 范围内。<br>例如若 <code>maxWorkerId=31</code>，则 <code>36533 % 32 = 21</code>。</li>
+</ul>
+<h4 id="4-异常处理"><a href="#4-异常处理" class="headerlink" title="4. 异常处理"></a>4. <strong>异常处理</strong></h4><ul>
+<li>如果获取PID失败（如无权限或非Linux系统），仅使用 <code>datacenterId</code> 生成哈希值，冲突概率会升高。</li>
+</ul>
+<hr>
+<h3 id="为什么这样设计？"><a href="#为什么这样设计？" class="headerlink" title="为什么这样设计？"></a>为什么这样设计？</h3><ol>
+<li><p><strong>唯一性保障</strong>：</p>
+<ul>
+<li>同一数据中心（<code>datacenterId</code>相同）的不同进程（PID不同）会生成不同的<code>workerId</code>。</li>
+<li>不同数据中心（<code>datacenterId</code>不同）的进程即使PID相同，哈希值也不同。</li>
+</ul>
+</li>
+<li><p><strong>分布式环境适配</strong>：</p>
+<ul>
+<li>不依赖IP或MAC地址（适合容器化部署）。</li>
+<li>PID在单机内唯一，结合<code>datacenterId</code>可扩展至分布式场景。</li>
+</ul>
+</li>
+<li><p><strong>限制范围</strong>：</p>
+<ul>
+<li><code>maxWorkerId</code> 通常是雪花算法中<code>workerId</code>的位数上限（如5位&#x3D;31），需强制约束。</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="潜在问题与优化"><a href="#潜在问题与优化" class="headerlink" title="潜在问题与优化"></a>潜在问题与优化</h3><h4 id="问题："><a href="#问题：" class="headerlink" title="问题："></a>问题：</h4><ol>
+<li><strong>PID冲突</strong>：<ul>
+<li>短时间重启进程可能导致PID重复（Linux PID默认循环分配）。</li>
+</ul>
+</li>
+<li><strong>哈希冲突</strong>：<ul>
+<li>不同字符串可能哈希到相同的值（尽管概率低）。</li>
+</ul>
+</li>
+<li><strong><code>maxWorkerId</code>过小</strong>：<ul>
+<li>若 <code>maxWorkerId=31</code>，而实际节点数超过32，必然冲突。</li>
+</ul>
+</li>
+</ol>
+<h4 id="优化建议："><a href="#优化建议：" class="headerlink" title="优化建议："></a>优化建议：</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 改进：结合更多唯一信息（如主机名）</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="type">long</span> <span class="title function_">getWorkerId</span><span class="params">(<span class="type">long</span> datacenterId, <span class="type">long</span> maxWorkerId)</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">uniqueKey</span> <span class="operator">=</span> datacenterId + <span class="string">&quot;_&quot;</span> + RuntimeUtil.getPid() + <span class="string">&quot;_&quot;</span> + InetAddress.getLocalHost().getHostName();</span><br><span class="line">    <span class="keyword">return</span> (uniqueKey.hashCode() &amp; <span class="number">0xffff</span>) % (maxWorkerId + <span class="number">1</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="示例计算-1"><a href="#示例计算-1" class="headerlink" title="示例计算"></a>示例计算</h3><p>假设：</p>
+<ul>
+<li><code>datacenterId = 2</code></li>
+<li><code>PID = 9876</code></li>
+<li><code>maxWorkerId = 31</code></li>
+</ul>
+<p>步骤：</p>
+<ol>
+<li>拼接字符串：<code>&quot;29876&quot;</code>。</li>
+<li>计算哈希：<code>&quot;29876&quot;.hashCode()</code> → 假设为 <code>456789</code>。</li>
+<li>取低16位：<code>456789 &amp; 0xffff = 0x6FD5</code>（十进制 <code>28629</code>）。</li>
+<li>取模：<code>28629 % 32 = 21</code>。</li>
+</ol>
+<p>最终返回 <code>21</code>。</p>
+<hr>
+<h3 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a>总结</h3><table>
+<thead>
+<tr>
+<th><strong>设计目标</strong></th>
+<th><strong>实现方式</strong></th>
+<th><strong>注意事项</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>唯一性</td>
+<td>结合<code>datacenterId</code>和PID生成哈希</td>
+<td>需确保PID不重复</td>
+</tr>
+<tr>
+<td>范围限制</td>
+<td>哈希取模 <code>maxWorkerId + 1</code></td>
+<td><code>maxWorkerId</code>需合理设置</td>
+</tr>
+<tr>
+<td>容错性</td>
+<td>忽略PID获取异常</td>
+<td>回退方案可能导致冲突概率升高</td>
+</tr>
+</tbody></table>
+<p>这种方法在<strong>中小规模分布式系统</strong>中足够可靠，但若节点数过多或PID不可控，建议改用更稳定的方案（如ZooKeeper分配唯一ID）。</p>
+</blockquote>
+<h3 id="2-分配标识位"><a href="#2-分配标识位" class="headerlink" title="2. 分配标识位"></a>2. 分配标识位</h3><p><strong>为什么是分配标识位而不是主动生成标识位</strong></p>
+<p>如果每个节点<strong>主动生成</strong>标识位（如通过MAC地址、IP哈希、PID等），可能因生成逻辑的局限性导致不同节点生成相同的ID。<br>例如：</p>
+<ul>
+<li>两个容器的MAC地址可能相同（虚拟化环境）。</li>
+<li>不同机器的IP哈希后可能映射到相同的值（哈希冲突）。</li>
+<li>通过集中式配置（如配置文件、数据库、ZooKeeper）<strong>显式分配</strong>唯一标识，确保全局唯一，或者业务内唯一</li>
+</ul>
+<p>标识位如何定义才能不重复？有两种方案：<strong>预分配和动态分配</strong></p>
+<p><strong>预分配</strong></p>
+<p>应用上线前，统计当前服务的节点数，人工去申请标识位。</p>
+<p>这种方案，没有代码开发量，在服务节点固定或者项目少可以使用，但是解决不了服务节点动态扩容性问题。</p>
+<p><strong>动态分配</strong></p>
+<p>通过将标识位存放在 Redis、Zookeeper、MySQL 等中间件，在服务启动的时候去请求标识位，请求后标识位更新为下一个可用的。</p>
+<p>通过存放标识位，延伸出一个问题：雪花算法的 ID 是 <strong>服务内唯一还是全局唯一。</strong></p>
+<p>以 Redis 举例，如果要做服务内唯一，存放标识位的 Redis 节点使用自己项目内的就可以；如果是全局唯一，所有使用雪花算法的应用，要用同一个 Redis 节点。</p>
+<hr>
+<p>两者的区别仅是 <strong>不同的服务间是否公用 Redis</strong>。如果没有全局唯一的需求，最好使 ID 服务内唯一，因为这样可以避免单点问题。</p>
+<p>服务的节点数超过 1024，则需要做额外的扩展；可以扩展 10 bit 标识位，或者选择开源分布式 ID 框架。</p>
+<h4 id="动态分配实现方案"><a href="#动态分配实现方案" class="headerlink" title="动态分配实现方案"></a>动态分配实现方案</h4><p>Redis 存储一个 Hash 结构 Key，包含两个键值对：dataCenterId 和 workerId。</p>
+<p>在应用启动时，通过 Lua 脚本去 Redis 获取标识位。dataCenterId 和 workerId 的获取与自增在 Lua 脚本中完成，调用返回后就是可用的标示位。</p>
+<p><a target="_blank" rel="noopener" href="https://imgse.com/i/pE43LQI"><img src="https://s21.ax1x.com/2025/04/19/pE43LQI.png" alt="pE43LQI.png"></a></p>
+<p>具体 Lua 脚本逻辑如下：</p>
+<ol>
+<li>第一个服务节点在获取时，Redis 可能是没有 snowflake_work_id_key 这个 Hash 的，应该先判断 Hash 是否存在，不存在初始化 Hash，dataCenterId、workerId 初始化为 0。</li>
+<li>如果 Hash 已存在，判断 dataCenterId、workerId 是否等于最大值 31，满足条件初始化 dataCenterId、workerId 设置为 0 返回。</li>
+<li>dataCenterId 和 workerId 的排列组合一共是 1024，在进行分配时，先分配 workerId。</li>
+<li>判断 workerId 是否 !&#x3D; 31，条件成立对 workerId 自增，并返回；如果 workerId &#x3D; 31，自增 dataCenterId 并将 workerId 设置为 0。</li>
+</ol>
+<h1 id="Hutool怎么使用Builder模式创建线程池"><a href="#Hutool怎么使用Builder模式创建线程池" class="headerlink" title="Hutool怎么使用Builder模式创建线程池"></a>Hutool怎么使用Builder模式创建线程池</h1><p>默认创建的线程池，构造方法最多有七个参数，核心线程数、最大线程数、阻塞队列、线程存活时间…</p>
+<p>日常使用创建线程池时，大家想一下为什么要这么设计？一起来看下源码注释中如何解释此行为。</p>
+<blockquote>
+<p>线程池之所以设置如此之多的构造参数，<strong>是因为对这些参数会有一定规则的校验</strong>，如果不满足线程池的规则，将不允许创建线程池，<strong>通过抛异常的方式终止程序</strong>。</p>
+<p>终止规则大概有七点，这里列举一下：</p>
+<ol>
+<li>核心线程数不可以小于 0。</li>
+<li>线程存活时间不可以小于 0。</li>
+<li>最大线程数不可以小于等于 0，同时也不可以小于核心线程数。</li>
+<li>阻塞队列、线程工厂、拒绝策略参数均不可为空。</li>
+</ol>
+<p>上述七点有两个作用，其一是为了让核心参数满足线程池运行流程，其二是为了保障运行时的稳定性</p>
+</blockquote>
+<p><strong>构造器函数过多以及属性之间存在依赖关系和约束条件</strong>。非常适合构建者模式</p>
+<h2 id="Hutool-Builder-创建线程池"><a href="#Hutool-Builder-创建线程池" class="headerlink" title="Hutool Builder 创建线程池"></a>Hutool Builder 创建线程池</h2><p>先从 <code>ExecutorBuilder#create</code> 入手</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> ExecutorBuilder <span class="title function_">create</span><span class="params">()</span> &#123;</span><br><span class="line">  <span class="keyword">return</span> <span class="keyword">new</span> <span class="title class_">ExecutorBuilder</span>();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>为什么会出现自己创建自己呢</p>
+<p>如果你想要对一个类中属性进行约束，前提是不是先应该把属性搞到手。</p>
+<p>没错，<code>ExecutorBuilder#create</code> 方法返回自己本身，然后通过 set 方法 <strong>把数据填充到创建出来的对象上</strong>，最后再进行依赖关系整理和条件约束。</p>
+<p>这个类当中有这样一个build方法，这个build方法构建出真正的线程池并且返回该线程池</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> ThreadPoolExecutor <span class="title function_">build</span><span class="params">(ExecutorBuilder builder)</span> &#123;</span><br><span class="line">		<span class="keyword">final</span> <span class="type">int</span> <span class="variable">corePoolSize</span> <span class="operator">=</span> builder.corePoolSize;</span><br><span class="line">		<span class="keyword">final</span> <span class="type">int</span> <span class="variable">maxPoolSize</span> <span class="operator">=</span> builder.maxPoolSize;</span><br><span class="line">		<span class="keyword">final</span> <span class="type">long</span> <span class="variable">keepAliveTime</span> <span class="operator">=</span> builder.keepAliveTime;</span><br><span class="line">		<span class="keyword">final</span> BlockingQueue&lt;Runnable&gt; workQueue;</span><br><span class="line">		<span class="keyword">if</span> (<span class="literal">null</span> != builder.workQueue) &#123;</span><br><span class="line">			workQueue = builder.workQueue;</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="comment">// corePoolSize为0则要使用SynchronousQueue避免无限阻塞</span></span><br><span class="line">			workQueue = (corePoolSize &lt;= <span class="number">0</span>) ? <span class="keyword">new</span> <span class="title class_">SynchronousQueue</span>&lt;&gt;() : <span class="keyword">new</span> <span class="title class_">LinkedBlockingQueue</span>&lt;&gt;(DEFAULT_QUEUE_CAPACITY);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">final</span> <span class="type">ThreadFactory</span> <span class="variable">threadFactory</span> <span class="operator">=</span> (<span class="literal">null</span> != builder.threadFactory) ? builder.threadFactory : Executors.defaultThreadFactory();</span><br><span class="line">		<span class="type">RejectedExecutionHandler</span> <span class="variable">handler</span> <span class="operator">=</span> ObjectUtil.defaultIfNull(builder.handler, RejectPolicy.ABORT.getValue());</span><br><span class="line"></span><br><span class="line">		<span class="keyword">final</span> <span class="type">ThreadPoolExecutor</span> <span class="variable">threadPoolExecutor</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ThreadPoolExecutor</span>(<span class="comment">//</span></span><br><span class="line">				corePoolSize, <span class="comment">//</span></span><br><span class="line">				maxPoolSize, <span class="comment">//</span></span><br><span class="line">				keepAliveTime, TimeUnit.NANOSECONDS, <span class="comment">//</span></span><br><span class="line">				workQueue, <span class="comment">//</span></span><br><span class="line">				threadFactory, <span class="comment">//</span></span><br><span class="line">				handler<span class="comment">//</span></span><br><span class="line">		);</span><br><span class="line">		<span class="keyword">if</span> (<span class="literal">null</span> != builder.allowCoreThreadTimeOut) &#123;</span><br><span class="line">			threadPoolExecutor.allowCoreThreadTimeOut(builder.allowCoreThreadTimeOut);</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> threadPoolExecutor;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在ExecutorBuilder的set方法的使用之下，线程池的创建过程可以集中处理所有配置参数，最终构建 <code>ThreadPoolExecutor</code>。</p>
+<p>逻辑包括：</p>
+<ul>
+<li><strong>参数默认值处理</strong>（如未设置队列时，根据 <code>corePoolSize</code> 选择 <code>SynchronousQueue</code> 或 <code>LinkedBlockingQueue</code>）。</li>
+<li><strong>依赖注入</strong>（如线程工厂、拒绝策略的默认值）。</li>
+<li><strong>最终产品构造</strong>（调用 <code>ThreadPoolExecutor</code> 构造函数）。</li>
+</ul>
+<p>这个时候我们就可以去看一下构建者模式具体的体现</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 获得一个新的线程池，并指定最大任务队列大小&lt;br&gt;</span></span><br><span class="line"><span class="comment">	 * 如果maximumPoolSize &amp;gt;= corePoolSize，在没有新任务加入的情况下，多出的线程将最多保留60s</span></span><br><span class="line"><span class="comment">	 *</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> corePoolSize     初始线程池大小</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> maximumPoolSize  最大线程池大小</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@param</span> maximumQueueSize 最大任务队列大小</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@return</span> &#123;<span class="doctag">@link</span> ThreadPoolExecutor&#125;</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@since</span> 5.4.1</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="keyword">public</span> <span class="keyword">static</span> ThreadPoolExecutor <span class="title function_">newExecutor</span><span class="params">(<span class="type">int</span> corePoolSize, <span class="type">int</span> maximumPoolSize, <span class="type">int</span> maximumQueueSize)</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> ExecutorBuilder.create()</span><br><span class="line">				.setCorePoolSize(corePoolSize)</span><br><span class="line">				.setMaxPoolSize(maximumPoolSize)</span><br><span class="line">				.setWorkQueue(<span class="keyword">new</span> <span class="title class_">LinkedBlockingQueue</span>&lt;&gt;(maximumQueueSize))</span><br><span class="line">				.build();</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+
+<p>还有一个知识点，build方法上面是有一个重写标志，说明他实现了接口方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * 构建ThreadPoolExecutor</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="keyword">public</span> ThreadPoolExecutor <span class="title function_">build</span><span class="params">()</span> &#123;</span><br><span class="line">		<span class="keyword">return</span> build(<span class="built_in">this</span>);</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+
+<p>Hutool 定义了 Builder 接口，实现此接口即可完成 Builder 模式，泛型 T 代表需要返回的构造对象类型，比如刚才线程池 Builder 泛型就是 ThreadPoolExecutor。</p>
+<p>在实现 build 方法上调用真正管理依赖和约束的方法 build(ExecutorBuilder builder)，将刚才创建好并且已经赋过值的构建对象传入。</p>
+<p>最后 build(ExecutorBuilder builder) 返回的就是我们所需要的线程池对象，这一块大家可以自己跟下源码，学会就可以套用自己写的业务代码。</p>
+<h1 id="项目当中什么场景使用了线程池"><a href="#项目当中什么场景使用了线程池" class="headerlink" title="项目当中什么场景使用了线程池"></a>项目当中什么场景使用了线程池</h1><h2 id="什么是线程池"><a href="#什么是线程池" class="headerlink" title="什么是线程池"></a>什么是线程池</h2><p>线程池是一种基于池化思想管理线程的工具，使用线程池可以减少创建销毁线程的开销，避免线程过多导致系统资源耗尽。在高并发以及大批量的任务处理场景，线程池的使用是必不可少的。</p>
+<p>线程过多会带来额外的开销，其中包括创建销毁线程的开销、调度线程的开销等等，同时也降低了计算机的整体性能。线程池维护多个线程，等待监督管理者分配可并发执行的任务。这种做法，一方面避免了处理任务时创建销毁线程开销的代价，另一方面避免了线程数量膨胀导致的过分调度问题，保证了对内核的充分利用。</p>
+<h2 id="什么场景下用线程池"><a href="#什么场景下用线程池" class="headerlink" title="什么场景下用线程池"></a>什么场景下用线程池</h2><h3 id="线程池在各场景下的核心作用解析"><a href="#线程池在各场景下的核心作用解析" class="headerlink" title="线程池在各场景下的核心作用解析"></a><strong>线程池在各场景下的核心作用解析</strong></h3><p>线程池的本质是 <strong>复用线程、控制并发、管理资源</strong>，不同场景下其核心价值有所不同，以下是逐场景的深度解析：</p>
+<hr>
+<h4 id="1-高并发任务处理（如Web服务器）"><a href="#1-高并发任务处理（如Web服务器）" class="headerlink" title="1. 高并发任务处理（如Web服务器）"></a><strong>1. 高并发任务处理（如Web服务器）</strong></h4><p><strong>核心问题</strong>：<br>每个请求创建一个线程会导致：</p>
+<ul>
+<li>线程创建&#x2F;销毁开销大（Java线程约1MB内存，创建耗时约1ms）。</li>
+<li>线程数爆炸引发OOM（如10000并发需10GB内存）。</li>
+</ul>
+<p><strong>线程池解决方案</strong>：  </p>
+<ul>
+<li><strong>复用线程</strong>：固定数量线程（如200个）循环处理请求，避免频繁创建。  </li>
+<li><strong>队列缓冲</strong>：超出的请求排队，避免瞬时压力击垮系统。  </li>
+<li><strong>资源可控</strong>：通过<code>maxPoolSize</code>限制最大线程数，保护系统。</li>
+</ul>
+<p><strong>数据支撑</strong>：  </p>
+<ul>
+<li>Tomcat默认线程池（<code>maxThreads=200</code>）可轻松支撑5000+ QPS，而直接<code>new Thread()</code>在1000并发时就会崩溃。</li>
+</ul>
+<hr>
+<h4 id="2-异步任务（如日志记录）"><a href="#2-异步任务（如日志记录）" class="headerlink" title="2. 异步任务（如日志记录）"></a><strong>2. 异步任务（如日志记录）</strong></h4><p><strong>核心问题</strong>：<br>同步写日志会阻塞业务线程，导致响应时间变长。  </p>
+<p><strong>线程池解决方案</strong>：  </p>
+<ul>
+<li><strong>异步化</strong>：日志任务投递到独立线程池，业务线程立即返回。  </li>
+<li><strong>削峰填谷</strong>：突发日志量由队列缓冲，避免影响主流程。</li>
+</ul>
+<p><strong>典型实现</strong>：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 单线程池确保日志顺序性</span></span><br><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> <span class="type">ExecutorService</span> <span class="variable">logExecutor</span> <span class="operator">=</span> Executors.newSingleThreadExecutor();</span><br><span class="line"></span><br><span class="line"><span class="keyword">void</span> <span class="title function_">saveLog</span><span class="params">(String msg)</span> &#123;</span><br><span class="line">    logExecutor.execute(() -&gt; logFile.write(msg)); <span class="comment">// 异步写入</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h4 id="3-定时任务（如缓存刷新）"><a href="#3-定时任务（如缓存刷新）" class="headerlink" title="3. 定时任务（如缓存刷新）"></a><strong>3. 定时任务（如缓存刷新）</strong></h4><p><strong>核心问题</strong>：  </p>
+<ul>
+<li><code>Timer</code>单线程执行，任务阻塞会导致后续任务延迟。  </li>
+<li>手动管理多线程定时任务复杂度高。</li>
+</ul>
+<p><strong>线程池解决方案</strong>：  </p>
+<ul>
+<li><strong><code>ScheduledThreadPool</code></strong>：  <ul>
+<li>内置时间轮算法，精准控制任务调度。  </li>
+<li>多线程并行执行，避免任务阻塞。</li>
+</ul>
+</li>
+</ul>
+<p><strong>对比实验</strong>：  </p>
+<table>
+<thead>
+<tr>
+<th>方案</th>
+<th>10个任务耗时</th>
+<th>任务阻塞影响</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Timer单线程</td>
+<td>1000ms</td>
+<td>所有任务延迟</td>
+</tr>
+<tr>
+<td>ScheduledThreadPool</td>
+<td>100ms</td>
+<td>仅阻塞任务受影响</td>
+</tr>
+</tbody></table>
+<hr>
+<h4 id="4-批量数据处理（如Excel导入）"><a href="#4-批量数据处理（如Excel导入）" class="headerlink" title="4. 批量数据处理（如Excel导入）"></a><strong>4. 批量数据处理（如Excel导入）</strong></h4><p><strong>核心问题</strong>：<br>单线程处理10万行数据耗时过长（如5分钟）。  </p>
+<p><strong>线程池优化方案</strong>：  </p>
+<ul>
+<li><strong>分片并行</strong>：将数据拆分为100份，线程池并行处理。  </li>
+<li><strong>动态调节</strong>：根据数据量调整线程数（如CPU密集型任务设<code>线程数=CPU核数</code>）。</li>
+</ul>
+<p><strong>性能提升示例</strong>：  </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">List&lt;Data&gt; dataList = getHugeData(); <span class="comment">// 10万条</span></span><br><span class="line"><span class="type">ExecutorService</span> <span class="variable">executor</span> <span class="operator">=</span> Executors.newFixedThreadPool(<span class="number">8</span>); <span class="comment">// 8线程并行</span></span><br><span class="line"></span><br><span class="line">dataList.stream()</span><br><span class="line">       .parallel() <span class="comment">// 使用线程池并行处理</span></span><br><span class="line">       .forEach(data -&gt; process(data)); </span><br></pre></td></tr></table></figure>
+<p><strong>结果</strong>：单线程5分钟 → 8线程38秒（加速近8倍）。</p>
+<hr>
+<h4 id="5-资源隔离（如支付-vs-日志）"><a href="#5-资源隔离（如支付-vs-日志）" class="headerlink" title="5. 资源隔离（如支付 vs 日志）"></a><strong>5. 资源隔离（如支付 vs 日志）</strong></h4><p><strong>核心问题</strong>：<br>日志线程占用过多资源，导致支付接口响应变慢。  </p>
+<p><strong>线程池解决方案</strong>：  </p>
+<ul>
+<li><strong>独立线程池</strong>：  <ul>
+<li>支付使用<code>FixedThreadPool(50)</code>（高优先级）。  </li>
+<li>日志使用<code>CachedThreadPool</code>（低优先级）。</li>
+</ul>
+</li>
+<li><strong>拒绝策略</strong>：日志队列满时直接丢弃，确保支付业务不受影响。</li>
+</ul>
+<p><strong>架构示例</strong>：  </p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">支付线程池（core=50）─── 处理交易请求</span><br><span class="line">日志线程池（core=2） ─── 写入日志（可丢弃）</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h4 id="6-流量削峰（如秒杀系统）"><a href="#6-流量削峰（如秒杀系统）" class="headerlink" title="6. 流量削峰（如秒杀系统）"></a><strong>6. 流量削峰（如秒杀系统）</strong></h4><p><strong>核心问题</strong>：<br>瞬时1万请求直接压垮数据库。  </p>
+<p><strong>线程池+队列方案</strong>：  </p>
+<ol>
+<li>请求先进入<code>LinkedBlockingQueue(5000)</code>。  </li>
+<li>线程池（<code>core=100, max=500</code>）按处理能力消费。  </li>
+<li>超限请求返回”系统繁忙”。</li>
+</ol>
+<p><strong>优势</strong>：  </p>
+<ul>
+<li>数据库每秒只承受500请求（可控）。  </li>
+<li>90%请求在200ms内响应（队列缓冲）。</li>
+</ul>
+<hr>
+<h4 id="7-避免线程创建开销（如短时RPC调用）"><a href="#7-避免线程创建开销（如短时RPC调用）" class="headerlink" title="7. 避免线程创建开销（如短时RPC调用）"></a><strong>7. 避免线程创建开销（如短时RPC调用）</strong></h4><p><strong>实验对比</strong>：  </p>
+<table>
+<thead>
+<tr>
+<th>方案</th>
+<th>执行10000次耗时</th>
+<th>内存占用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>每次new Thread()</td>
+<td>12秒</td>
+<td>10GB</td>
+</tr>
+<tr>
+<td>线程池（8线程）</td>
+<td>1.5秒</td>
+<td>50MB</td>
+</tr>
+</tbody></table>
+<p><strong>原因</strong>：  </p>
+<ul>
+<li>线程创建成本：约1ms&#x2F;次，包括：  <ul>
+<li>分配栈内存（默认1MB&#x2F;线程）。  </li>
+<li>系统调用（Linux的<code>pthread_create</code>）。</li>
+</ul>
+</li>
+<li>线程池复用线程，消除创建开销。</li>
+</ul>
+<hr>
+<h3 id="线程池的不可替代性"><a href="#线程池的不可替代性" class="headerlink" title="线程池的不可替代性"></a><strong>线程池的不可替代性</strong></h3><ol>
+<li><strong>成本控制</strong>：线程是昂贵资源，必须复用。  </li>
+<li><strong>稳定性</strong>：避免线程数失控导致系统崩溃。  </li>
+<li><strong>可观测性</strong>：通过<code>ThreadPoolExecutor</code>可监控：  <ul>
+<li>活跃线程数<code>getActiveCount()</code>  </li>
+<li>队列堆积<code>getQueue().size()</code></li>
+</ul>
+</li>
+</ol>
+<p><strong>错误案例</strong>：<br>某电商直接<code>new Thread()</code>处理订单，大促时：  </p>
+<ul>
+<li>创建50万线程 → 内存耗尽 → 全站宕机。<br><strong>修复后</strong>：  </li>
+<li>改用线程池（<code>core=200, max=1000, queue=10000</code>）→ 稳定支撑10万订单&#x2F;分钟。</li>
+</ul>
+<hr>
+<h3 id="总结：为什么用线程池？"><a href="#总结：为什么用线程池？" class="headerlink" title="总结：为什么用线程池？"></a><strong>总结：为什么用线程池？</strong></h3><table>
+<thead>
+<tr>
+<th>场景</th>
+<th>核心需求</th>
+<th>线程池提供的价值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>高并发请求</td>
+<td>快速响应，避免崩溃</td>
+<td>复用线程 + 队列缓冲</td>
+</tr>
+<tr>
+<td>异步任务</td>
+<td>不阻塞主流程</td>
+<td>任务投递后立即返回</td>
+</tr>
+<tr>
+<td>定时任务</td>
+<td>精准调度，避免阻塞</td>
+<td>多线程并行 + 时间轮算法</td>
+</tr>
+<tr>
+<td>批量数据处理</td>
+<td>加速处理</td>
+<td>分片并行 + 资源控制</td>
+</tr>
+<tr>
+<td>资源隔离</td>
+<td>关键业务不被影响</td>
+<td>独立线程池 + 优先级管理</td>
+</tr>
+<tr>
+<td>流量削峰</td>
+<td>平滑突发流量</td>
+<td>队列缓冲 + 拒绝策略</td>
+</tr>
+<tr>
+<td>短生命周期任务</td>
+<td>避免创建开销</td>
+<td>线程复用 + 动态伸缩</td>
+</tr>
+</tbody></table>
+<p><strong>终极目标</strong>：<br><strong>以最小资源消耗，提供最高效的并发处理能力。</strong></p>
+<h2 id="12306-如何使用线程池"><a href="#12306-如何使用线程池" class="headerlink" title="12306 如何使用线程池"></a>12306 如何使用线程池</h2><p>12306 中有个很好的场景，如果一个用户购买多种类型的车座，比如同一订单购买了一等座和二等座，那么就要按照不同的座位逻辑进行选座。</p>
+<p>上述这个流程在我们系统里是串行的，也就是说执行完一等座选座后再执行二等座。这个逻辑是可以并行的，可以极大程度上提高咱们的执行效率，提升系统吞吐量。</p>
+<h3 id="1-原始座位分配逻辑"><a href="#1-原始座位分配逻辑" class="headerlink" title="1. 原始座位分配逻辑"></a>1. 原始座位分配逻辑</h3><p>根据上文描述，第一版座位分配场景通过串行的方式分配座位。如果遇到一个用户购买了两到三个座位类型，性能执行稍差。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 根据用户购买的座位类型进行分组</span></span><br><span class="line">Map&lt;Integer, List&lt;PurchaseTicketPassengerDetailDTO&gt;&gt; seatTypeMap = passengerDetails.stream()</span><br><span class="line">        .collect(Collectors.groupingBy(PurchaseTicketPassengerDetailDTO::getSeatType));</span><br><span class="line"><span class="comment">// 分配好用户相关的座位信息</span></span><br><span class="line">List&lt;TrainPurchaseTicketRespDTO&gt; actualResult = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line"><span class="comment">// 串行化执行座位分配流程，比如先执行一等座，再执行二等座...</span></span><br><span class="line">seatTypeMap.forEach((seatType, passengerSeatDetails) -&gt; &#123;</span><br><span class="line">    <span class="type">SelectSeatDTO</span> <span class="variable">selectSeatDTO</span> <span class="operator">=</span> SelectSeatDTO.builder()</span><br><span class="line">            .seatType(seatType)</span><br><span class="line">            .passengerSeatDetails(passengerSeatDetails)</span><br><span class="line">            .requestParam(requestParam)</span><br><span class="line">            .build();</span><br><span class="line">    <span class="comment">// 座位分配</span></span><br><span class="line">    List&lt;TrainPurchaseTicketRespDTO&gt; aggregationResult = abstractStrategyChoose.chooseAndExecuteResp(VehicleTypeEnum.findNameByCode(trainType) + VehicleSeatTypeEnum.findNameByCode(seatType), selectSeatDTO);</span><br><span class="line">    <span class="keyword">if</span> (!Objects.equals(aggregationResult.size(), passengerSeatDetails.size())) &#123;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">ServiceException</span>(<span class="string">&quot;站点余票不足，请尝试更换座位类型或选择其它站点&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 分配好座位的用户信息添加到返回集合中</span></span><br><span class="line">    actualResult.addAll(aggregationResult);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><strong>顺序性</strong>：<code>forEach</code> 遍历 <code>seatTypeMap</code> 时，虽然Java不保证 <code>HashMap</code> 的遍历顺序，但实际业务中通常会通过排序或TreeMap确保按固定顺序（如先商务座→一等座→二等座）。</li>
+<li><strong>阻塞式处理</strong>：每个座位类型的处理必须<strong>完成</strong>后才会进入下一个类型，前序失败会直接抛异常终止。</li>
+</ul>
+<h3 id="2-代入线程池场景"><a href="#2-代入线程池场景" class="headerlink" title="2. 代入线程池场景"></a>2. 代入线程池场景</h3><p>第二个版本，我们引入线程池去做这个单订单多座位购票场景。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">seatTypeMap.forEach((seatType, passengerSeatDetails) -&gt; &#123;</span><br><span class="line">    selectSeatThreadPoolExecutor.execute(() -&gt; &#123; </span><br><span class="line">        <span class="comment">// 不同座位类型的处理任务提交到线程池异步执行</span></span><br><span class="line">    &#125;);</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p><strong>按座位类型拆分任务</strong>：每种座位类型的分配作为独立任务</p>
+<p><strong>不同座位类型互不影响</strong>：</p>
+<ul>
+<li>商务座任务卡顿不会阻塞二等座处理</li>
+<li>可通过线程池监控单独观察各类型处理情况</li>
+</ul>
+<h3 id="3-线程池执行方案"><a href="#3-线程池执行方案" class="headerlink" title="3. 线程池执行方案"></a>3. 线程池执行方案</h3><p>第二种解决方案看着是挺好的，但是还有一些并行以及性能的问题，如下：</p>
+<ol>
+<li>如果用户下单仅选择单一座位，通过线程池执行会额外增加性能消耗。</li>
+<li>线程池并行的情况下，向 actualResult 添加数据，会存在并发问题。因为 actualResult 是 ArrayList。线程不安全</li>
+</ol>
+<p>结合上面两个问题，对代码做了相关优化。最终代码如下所示：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> ThreadPoolExecutor selectSeatThreadPoolExecutor;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 根据用户购买的座位类型进行分组</span></span><br><span class="line">Map&lt;Integer, List&lt;PurchaseTicketPassengerDetailDTO&gt;&gt; seatTypeMap = passengerDetails.stream()</span><br><span class="line">        .collect(Collectors.groupingBy(PurchaseTicketPassengerDetailDTO::getSeatType));</span><br><span class="line"><span class="comment">// 分配好用户相关的座位信息，容器修改为线程安全的数组集合</span></span><br><span class="line">List&lt;TrainPurchaseTicketRespDTO&gt; actualResult = Collections.synchronizedList(<span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;());</span><br><span class="line"><span class="comment">// 如果座位类型超过单个并行分配座位</span></span><br><span class="line"><span class="keyword">if</span> (seatTypeMap.size() &gt; <span class="number">1</span>) &#123;</span><br><span class="line">    seatTypeMap.forEach((seatType, passengerSeatDetails) -&gt; &#123;</span><br><span class="line">        <span class="comment">// 不同座位类型的处理任务提交到线程池异步执行</span></span><br><span class="line">        selectSeatThreadPoolExecutor.execute(() -&gt; &#123;</span><br><span class="line">            <span class="type">SelectSeatDTO</span> <span class="variable">selectSeatDTO</span> <span class="operator">=</span> SelectSeatDTO.builder()</span><br><span class="line">                    .seatType(seatType)</span><br><span class="line">                    .passengerSeatDetails(passengerSeatDetails)</span><br><span class="line">                    .requestParam(requestParam)</span><br><span class="line">                    .build();</span><br><span class="line">            <span class="comment">// 执行策略模式分配座位</span></span><br><span class="line">            List&lt;TrainPurchaseTicketRespDTO&gt; aggregationResult = abstractStrategyChoose.chooseAndExecuteResp(VehicleTypeEnum.findNameByCode(trainType) + VehicleSeatTypeEnum.findNameByCode(seatType), selectSeatDTO);</span><br><span class="line">            <span class="keyword">if</span> (!Objects.equals(aggregationResult.size(), passengerSeatDetails.size())) &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">ServiceException</span>(<span class="string">&quot;站点余票不足，请尝试更换座位类型或选择其它站点&quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="comment">// 分配好座位的用户信息添加到返回集合中</span></span><br><span class="line">            actualResult.addAll(aggregationResult);</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    <span class="comment">// 如果座位类型只有单个，串行执行即可</span></span><br><span class="line">    seatTypeMap.forEach((seatType, passengerSeatDetails) -&gt; &#123;</span><br><span class="line">        List&lt;TrainPurchaseTicketRespDTO&gt; aggregationResult = distributeSeats(trainType, seatType, requestParam, passengerSeatDetails);</span><br><span class="line">        actualResult.addAll(aggregationResult);</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="4-最终解决方案"><a href="#4-最终解决方案" class="headerlink" title="4. 最终解决方案"></a>4. 最终解决方案</h3><p>上面有个问题是线程池执行是异步的，有可能我们购票流程都结束了，这里还没执行完分配座位逻辑。</p>
+<p>直接使用线程池的 <code>execute()</code> 方法提交任务会导致 <strong>主线程无法感知子任务完成状态</strong>，可能出现座位分配未完成就提交订单的问题。</p>
+<p>为此，我们需要拿到线程池执行的结果后再继续执行后续的提交订单逻辑。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line">Map&lt;Integer, List&lt;PurchaseTicketPassengerDetailDTO&gt;&gt; seatTypeMap = passengerDetails.stream()</span><br><span class="line">        .collect(Collectors.groupingBy(PurchaseTicketPassengerDetailDTO::getSeatType));</span><br><span class="line">List&lt;TrainPurchaseTicketRespDTO&gt; actualResult = <span class="keyword">new</span> <span class="title class_">CopyOnWriteArrayList</span>&lt;&gt;();</span><br><span class="line"><span class="keyword">if</span> (seatTypeMap.size() &gt; <span class="number">1</span>) &#123;</span><br><span class="line">    <span class="comment">// 添加多线程执行结果类获取 Future，流程执行完成后获取</span></span><br><span class="line">    List&lt;Future&lt;List&lt;TrainPurchaseTicketRespDTO&gt;&gt;&gt; futureResults = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">    seatTypeMap.forEach((seatType, passengerSeatDetails) -&gt; &#123;</span><br><span class="line">        Future&lt;List&lt;TrainPurchaseTicketRespDTO&gt;&gt; completableFuture = selectSeatThreadPoolExecutor</span><br><span class="line">                .submit(() -&gt; distributeSeats(trainType, seatType, requestParam, passengerSeatDetails));</span><br><span class="line">        futureResults.add(completableFuture);</span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="comment">// 获取座位分配结果</span></span><br><span class="line">    futureResults.parallelStream().forEach(completableFuture -&gt; &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            actualResult.addAll(completableFuture.get());</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">ServiceException</span>(<span class="string">&quot;站点余票不足，请尝试更换座位类型或选择其它站点&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;);</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    seatTypeMap.forEach((seatType, passengerSeatDetails) -&gt; &#123;</span><br><span class="line">        List&lt;TrainPurchaseTicketRespDTO&gt; aggregationResult = distributeSeats(trainType, seatType, requestParam, passengerSeatDetails);</span><br><span class="line">        actualResult.addAll(aggregationResult);</span><br><span class="line">    &#125;);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>为了避免座位分配数量出现问题，我们应该在座位全部分配完成后进行一次验证。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (CollUtil.isEmpty(actualResult) || !Objects.equals(actualResult.size(), passengerDetails.size())) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> <span class="title class_">ServiceException</span>(<span class="string">&quot;站点余票不足，请尝试更换座位类型或选择其它站点&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="12306-线程池参数如何设置"><a href="#12306-线程池参数如何设置" class="headerlink" title="12306 线程池参数如何设置"></a>12306 线程池参数如何设置</h2><h3 id="1-有问题的线程池参数"><a href="#1-有问题的线程池参数" class="headerlink" title="1. 有问题的线程池参数"></a>1. 有问题的线程池参数</h3><p>创建一个类似于这种线程池，业务使用会不会有问题？</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">ThreadPoolExecutor</span> <span class="variable">selectSeatThreadPoolExecutor</span> <span class="operator">=</span> <span class="keyword">new</span> <span class="title class_">ThreadPoolExecutor</span>(</span><br><span class="line">    <span class="number">24</span>,  <span class="comment">// 核心线程数</span></span><br><span class="line">    <span class="number">36</span>,  <span class="comment">// 最大线程数</span></span><br><span class="line">    <span class="number">20L</span>, <span class="comment">// keepAliveTime</span></span><br><span class="line">    TimeUnit.SECONDS,  <span class="comment">// keepAliveTime 时间单位</span></span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">LinkedBlockingQueue</span>&lt;&gt;(<span class="number">4096</span>),  <span class="comment">// 阻塞队列</span></span><br><span class="line">    <span class="keyword">new</span> <span class="title class_">ThreadPoolExecutor</span>.AbortPolicy() <span class="comment">// 拒绝策略：抛出异常</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
+
+<p>我们先不说核心线程数和最大线程数是否合理，这个不在本次文章讨论范围内。</p>
+<p>从阻塞队列以及拒绝策略的方式进行解析。阻塞队列设置 LinkedBlockingQueue，容量设置为 4096 有什么问题？拒绝策略设置 AbortPolicy 有什么问题？</p>
+<p>线程池线程数是有限的，如果大量任务堆积在阻塞队列，这对于业务的执行是有比较大的延迟。</p>
+<p>我们期望的结果是，线程池不堆积任务，如果线程池的线程满了就让提交任务的主线程（Web容器执行线程）执行分配座位逻辑。简单来说，就是线程池线程都在执行任务时，我们将并行的逻辑降级为串行。</p>
+<h3 id="2-重构后的线程池参数"><a href="#2-重构后的线程池参数" class="headerlink" title="2. 重构后的线程池参数"></a>2. 重构后的线程池参数</h3><p>为了实现上述业务逻辑，我们通过 Hippo4j 修改创建线程池的阻塞队列和拒绝策略。</p>
+<p>将阻塞队列设置为 SynchronousQueue，一个没有容量的阻塞队列，没有容量自然也不会有堆积。</p>
+<p>如果线程池满了会触发拒绝策略，如果抛异常就违反了咱们设计的初衷。从 AbortPolicy 修改为 CallerRunsPolicy，代表如果触发拒绝策略，则由提交任务的线程运行该任务。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="meta">@DynamicThreadPool</span></span><br><span class="line"><span class="keyword">public</span> ThreadPoolExecutor <span class="title function_">selectSeatThreadPoolExecutor</span><span class="params">()</span> &#123;</span><br><span class="line">    <span class="type">String</span> <span class="variable">threadPoolId</span> <span class="operator">=</span> <span class="string">&quot;select-seat-thread-pool-executor&quot;</span>;</span><br><span class="line">    <span class="keyword">return</span> ThreadPoolBuilder.builder()</span><br><span class="line">            .threadPoolId(threadPoolId)</span><br><span class="line">            .threadFactory(threadPoolId)</span><br><span class="line">            .workQueue(BlockingQueueTypeEnum.SYNCHRONOUS_QUEUE)</span><br><span class="line">            .corePoolSize(<span class="number">24</span>)</span><br><span class="line">            .maximumPoolSize(<span class="number">36</span>)</span><br><span class="line">            .allowCoreThreadTimeOut(<span class="literal">true</span>)</span><br><span class="line">            .keepAliveTime(<span class="number">60</span>, TimeUnit.MINUTES)</span><br><span class="line">            .rejected(<span class="keyword">new</span> <span class="title class_">ThreadPoolExecutor</span>.CallerRunsPolicy())</span><br><span class="line">            .dynamicPool()</span><br><span class="line">            .build();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Allimac</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2025/04/22/12306Impl-3/">http://example.com/2025/04/22/12306Impl-3/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">AllimacBlog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E7%BA%BF%E7%A8%8B%E6%B1%A0/">线程池</a><a class="post-meta__tags" href="/tags/12306%E6%8A%80%E6%9C%AF%E6%A2%B3%E7%90%86/">12306技术梳理</a><a class="post-meta__tags" href="/tags/%E5%88%86%E5%B8%83%E5%BC%8F%E9%9B%AA%E8%8A%B1%E7%AE%97%E6%B3%95ID/">分布式雪花算法ID</a><a class="post-meta__tags" href="/tags/%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F-%E6%9E%84%E5%BB%BA%E8%80%85%E6%A8%A1%E5%BC%8F/">设计模式-构建者模式</a></div><div class="post-share"><div class="social-share" data-image="/img/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/04/22/12306Impl-2/" title="12306Impl-2"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">12306Impl-2</div></div><div class="info-2"><div class="info-item-1">用户购票责任链验证--核心功能的具体责任链实现详解;列车购票基本流程--防止重复提交、如何设计多地理层级缓存、如何分配座位、如何提交订单，如何保障缓存和数据库一致性-canel+binlog;令牌限流和传统秒杀场景的选型原因;乘车人如何查询本人车票-路由表</div></div></div></a><a class="pagination-related" href="/2025/04/22/12306Impl-4/" title="12306Impl-4"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">12306Impl-4</div></div><div class="info-2"><div class="info-item-1">防止库存超卖；布隆过滤器快速返回；抗节假日高并发；中间站点余票如何更新；Binlog更新延迟问题怎么解决；如何保证消息顿列顺序性</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/03/30/ThreadPoolPeek/" title="ThreadPoolPeek"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-03-30</div><div class="info-item-2">ThreadPoolPeek</div></div><div class="info-2"><div class="info-item-1">线程池实现原理和应用</div></div></div></a><a class="pagination-related" href="/2025/04/22/12306Impl-1/" title="12306Impl-1"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-04-22</div><div class="info-item-2">12306Impl-1</div></div><div class="info-2"><div class="info-item-1">12306开发的过程当中，会对核心业务的思路进行梳理。一个文档可能涉及七八个技术点左右。这篇文章主要介绍：发起支付的流程，搜索技术的选型。如何防止用户注册高并发情况下的缓存穿透。责任链模式进行校验</div></div></div></a><a class="pagination-related" href="/2025/04/22/12306Impl-2/" title="12306Impl-2"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-04-22</div><div class="info-item-2">12306Impl-2</div></div><div class="info-2"><div class="info-item-1">用户购票责任链验证--核心功能的具体责任链实现详解;列车购票基本流程--防止重复提交、如何设计多地理层级缓存、如何分配座位、如何提交订单，如何保障缓存和数据库一致性-canel+binlog;令牌限流和传统秒杀场景的选型原因;乘车人如何查询本人车票-路由表</div></div></div></a><a class="pagination-related" href="/2025/04/22/12306Impl-4/" title="12306Impl-4"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-04-22</div><div class="info-item-2">12306Impl-4</div></div><div class="info-2"><div class="info-item-1">防止库存超卖；布隆过滤器快速返回；抗节假日高并发；中间站点余票如何更新；Binlog更新延迟问题怎么解决；如何保证消息顿列顺序性</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Allimac</div><div class="author-info-description">华丽的仓库存放着我简陋的思想</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">61</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">65</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/AillemaCc"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/AillemaCc" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="http://www.swindle.icu/#/Home" target="_blank" title="曾经的博客"><i class="fas fa-envelope" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">这里是小梦一场的大床</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E7%94%9F%E6%88%90%E5%88%86%E5%B8%83%E5%BC%8F%E9%9B%AA%E8%8A%B1%E7%AE%97%E6%B3%95ID"><span class="toc-number">1.</span> <span class="toc-text">如何生成分布式雪花算法ID</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E9%9B%AA%E8%8A%B1%E7%AE%97%E6%B3%95"><span class="toc-number">1.1.</span> <span class="toc-text">什么是雪花算法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E9%9B%AA%E8%8A%B1%E7%AE%97%E6%B3%95%E7%BB%84%E6%88%90"><span class="toc-number">1.1.1.</span> <span class="toc-text">1. 雪花算法组成</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E9%9B%AA%E8%8A%B1%E7%AE%97%E6%B3%95%E9%80%82%E7%94%A8%E5%9C%BA%E6%99%AF"><span class="toc-number">1.1.2.</span> <span class="toc-text">2. 雪花算法适用场景</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E9%9B%AA%E8%8A%B1%E7%AE%97%E6%B3%95%E7%94%9F%E6%88%90-ID-%E9%87%8D%E5%A4%8D%E9%97%AE%E9%A2%98"><span class="toc-number">1.2.</span> <span class="toc-text">雪花算法生成 ID 重复问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%89%8D%E6%8F%90%E6%9D%A1%E4%BB%B6"><span class="toc-number">1.2.1.</span> <span class="toc-text">前提条件</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%A0%87%E8%AF%86%E4%BD%8D%E5%A6%82%E4%BD%95%E5%AE%9A%E4%B9%89"><span class="toc-number">1.2.2.</span> <span class="toc-text">1. 标识位如何定义</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#dataCenterId"><span class="toc-number">1.2.2.1.</span> <span class="toc-text">dataCenterId</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E8%A7%A3%E6%9E%90"><span class="toc-number">1.2.3.</span> <span class="toc-text">代码解析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E6%AD%A5%E9%AA%A4%E8%AF%B4%E6%98%8E"><span class="toc-number">1.2.4.</span> <span class="toc-text">关键步骤说明</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E8%8E%B7%E5%8F%96MAC%E5%9C%B0%E5%9D%80"><span class="toc-number">1.2.4.1.</span> <span class="toc-text">1. 获取MAC地址</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E6%8F%90%E5%8F%96%E6%9C%80%E5%90%8E%E4%B8%A4%E4%B8%AA%E5%AD%97%E8%8A%82"><span class="toc-number">1.2.4.2.</span> <span class="toc-text">2. 提取最后两个字节</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E5%8F%B3%E7%A7%BB6%E4%BD%8D%EF%BC%88%E7%9B%B8%E5%BD%93%E4%BA%8E%E9%99%A4%E4%BB%A564%EF%BC%89"><span class="toc-number">1.2.4.3.</span> <span class="toc-text">3. 右移6位（相当于除以64）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-%E5%8F%96%E6%A8%A1%E8%BF%90%E7%AE%97%E9%99%90%E5%88%B6%E8%8C%83%E5%9B%B4"><span class="toc-number">1.2.4.4.</span> <span class="toc-text">4. 取模运算限制范围</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-%E9%BB%98%E8%AE%A4%E5%80%BC"><span class="toc-number">1.2.4.5.</span> <span class="toc-text">5. 默认值</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E7%94%A8MAC%E5%9C%B0%E5%9D%80%EF%BC%9F"><span class="toc-number">1.2.5.</span> <span class="toc-text">为什么用MAC地址？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A4%BA%E4%BE%8B%E8%AE%A1%E7%AE%97"><span class="toc-number">1.2.6.</span> <span class="toc-text">示例计算</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%BD%9C%E5%9C%A8%E9%97%AE%E9%A2%98"><span class="toc-number">1.2.7.</span> <span class="toc-text">潜在问题</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%94%B9%E8%BF%9B%E5%BB%BA%E8%AE%AE"><span class="toc-number">1.2.8.</span> <span class="toc-text">改进建议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.2.9.</span> <span class="toc-text">总结</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#workid"><span class="toc-number">1.2.9.1.</span> <span class="toc-text">workid</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%96%B9%E6%B3%95%E5%8A%9F%E8%83%BD"><span class="toc-number">1.2.10.</span> <span class="toc-text">方法功能</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%BB%A3%E7%A0%81%E8%A7%A3%E6%9E%90-1"><span class="toc-number">1.2.11.</span> <span class="toc-text">代码解析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E5%85%B3%E9%94%AE%E6%AD%A5%E9%AA%A4%E5%8E%9F%E7%90%86"><span class="toc-number">1.2.12.</span> <span class="toc-text">关键步骤原理</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E6%8B%BC%E6%8E%A5%E5%94%AF%E4%B8%80%E6%A0%87%E8%AF%86%E5%AD%97%E7%AC%A6%E4%B8%B2"><span class="toc-number">1.2.12.1.</span> <span class="toc-text">1. 拼接唯一标识字符串</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E7%94%9F%E6%88%90%E5%93%88%E5%B8%8C%E5%80%BC"><span class="toc-number">1.2.12.2.</span> <span class="toc-text">2. 生成哈希值</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E5%8F%96%E6%A8%A1%E9%99%90%E5%88%B6%E8%8C%83%E5%9B%B4"><span class="toc-number">1.2.12.3.</span> <span class="toc-text">3. 取模限制范围</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86"><span class="toc-number">1.2.12.4.</span> <span class="toc-text">4. 异常处理</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%99%E6%A0%B7%E8%AE%BE%E8%AE%A1%EF%BC%9F"><span class="toc-number">1.2.13.</span> <span class="toc-text">为什么这样设计？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%BD%9C%E5%9C%A8%E9%97%AE%E9%A2%98%E4%B8%8E%E4%BC%98%E5%8C%96"><span class="toc-number">1.2.14.</span> <span class="toc-text">潜在问题与优化</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%EF%BC%9A"><span class="toc-number">1.2.14.1.</span> <span class="toc-text">问题：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#%E4%BC%98%E5%8C%96%E5%BB%BA%E8%AE%AE%EF%BC%9A"><span class="toc-number">1.2.14.2.</span> <span class="toc-text">优化建议：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%A4%BA%E4%BE%8B%E8%AE%A1%E7%AE%97-1"><span class="toc-number">1.2.15.</span> <span class="toc-text">示例计算</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93-1"><span class="toc-number">1.2.16.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%88%86%E9%85%8D%E6%A0%87%E8%AF%86%E4%BD%8D"><span class="toc-number">1.2.17.</span> <span class="toc-text">2. 分配标识位</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E5%8A%A8%E6%80%81%E5%88%86%E9%85%8D%E5%AE%9E%E7%8E%B0%E6%96%B9%E6%A1%88"><span class="toc-number">1.2.17.1.</span> <span class="toc-text">动态分配实现方案</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Hutool%E6%80%8E%E4%B9%88%E4%BD%BF%E7%94%A8Builder%E6%A8%A1%E5%BC%8F%E5%88%9B%E5%BB%BA%E7%BA%BF%E7%A8%8B%E6%B1%A0"><span class="toc-number">2.</span> <span class="toc-text">Hutool怎么使用Builder模式创建线程池</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Hutool-Builder-%E5%88%9B%E5%BB%BA%E7%BA%BF%E7%A8%8B%E6%B1%A0"><span class="toc-number">2.1.</span> <span class="toc-text">Hutool Builder 创建线程池</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E9%A1%B9%E7%9B%AE%E5%BD%93%E4%B8%AD%E4%BB%80%E4%B9%88%E5%9C%BA%E6%99%AF%E4%BD%BF%E7%94%A8%E4%BA%86%E7%BA%BF%E7%A8%8B%E6%B1%A0"><span class="toc-number">3.</span> <span class="toc-text">项目当中什么场景使用了线程池</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E6%98%AF%E7%BA%BF%E7%A8%8B%E6%B1%A0"><span class="toc-number">3.1.</span> <span class="toc-text">什么是线程池</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%80%E4%B9%88%E5%9C%BA%E6%99%AF%E4%B8%8B%E7%94%A8%E7%BA%BF%E7%A8%8B%E6%B1%A0"><span class="toc-number">3.2.</span> <span class="toc-text">什么场景下用线程池</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%9C%A8%E5%90%84%E5%9C%BA%E6%99%AF%E4%B8%8B%E7%9A%84%E6%A0%B8%E5%BF%83%E4%BD%9C%E7%94%A8%E8%A7%A3%E6%9E%90"><span class="toc-number">3.2.1.</span> <span class="toc-text">线程池在各场景下的核心作用解析</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E9%AB%98%E5%B9%B6%E5%8F%91%E4%BB%BB%E5%8A%A1%E5%A4%84%E7%90%86%EF%BC%88%E5%A6%82Web%E6%9C%8D%E5%8A%A1%E5%99%A8%EF%BC%89"><span class="toc-number">3.2.1.1.</span> <span class="toc-text">1. 高并发任务处理（如Web服务器）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1%EF%BC%88%E5%A6%82%E6%97%A5%E5%BF%97%E8%AE%B0%E5%BD%95%EF%BC%89"><span class="toc-number">3.2.1.2.</span> <span class="toc-text">2. 异步任务（如日志记录）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%EF%BC%88%E5%A6%82%E7%BC%93%E5%AD%98%E5%88%B7%E6%96%B0%EF%BC%89"><span class="toc-number">3.2.1.3.</span> <span class="toc-text">3. 定时任务（如缓存刷新）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-%E6%89%B9%E9%87%8F%E6%95%B0%E6%8D%AE%E5%A4%84%E7%90%86%EF%BC%88%E5%A6%82Excel%E5%AF%BC%E5%85%A5%EF%BC%89"><span class="toc-number">3.2.1.4.</span> <span class="toc-text">4. 批量数据处理（如Excel导入）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#5-%E8%B5%84%E6%BA%90%E9%9A%94%E7%A6%BB%EF%BC%88%E5%A6%82%E6%94%AF%E4%BB%98-vs-%E6%97%A5%E5%BF%97%EF%BC%89"><span class="toc-number">3.2.1.5.</span> <span class="toc-text">5. 资源隔离（如支付 vs 日志）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#6-%E6%B5%81%E9%87%8F%E5%89%8A%E5%B3%B0%EF%BC%88%E5%A6%82%E7%A7%92%E6%9D%80%E7%B3%BB%E7%BB%9F%EF%BC%89"><span class="toc-number">3.2.1.6.</span> <span class="toc-text">6. 流量削峰（如秒杀系统）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#7-%E9%81%BF%E5%85%8D%E7%BA%BF%E7%A8%8B%E5%88%9B%E5%BB%BA%E5%BC%80%E9%94%80%EF%BC%88%E5%A6%82%E7%9F%AD%E6%97%B6RPC%E8%B0%83%E7%94%A8%EF%BC%89"><span class="toc-number">3.2.1.7.</span> <span class="toc-text">7. 避免线程创建开销（如短时RPC调用）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E7%BA%BF%E7%A8%8B%E6%B1%A0%E7%9A%84%E4%B8%8D%E5%8F%AF%E6%9B%BF%E4%BB%A3%E6%80%A7"><span class="toc-number">3.2.2.</span> <span class="toc-text">线程池的不可替代性</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93%EF%BC%9A%E4%B8%BA%E4%BB%80%E4%B9%88%E7%94%A8%E7%BA%BF%E7%A8%8B%E6%B1%A0%EF%BC%9F"><span class="toc-number">3.2.3.</span> <span class="toc-text">总结：为什么用线程池？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#12306-%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8%E7%BA%BF%E7%A8%8B%E6%B1%A0"><span class="toc-number">3.3.</span> <span class="toc-text">12306 如何使用线程池</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%8E%9F%E5%A7%8B%E5%BA%A7%E4%BD%8D%E5%88%86%E9%85%8D%E9%80%BB%E8%BE%91"><span class="toc-number">3.3.1.</span> <span class="toc-text">1. 原始座位分配逻辑</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E4%BB%A3%E5%85%A5%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%9C%BA%E6%99%AF"><span class="toc-number">3.3.2.</span> <span class="toc-text">2. 代入线程池场景</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E6%89%A7%E8%A1%8C%E6%96%B9%E6%A1%88"><span class="toc-number">3.3.3.</span> <span class="toc-text">3. 线程池执行方案</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E6%9C%80%E7%BB%88%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-number">3.3.4.</span> <span class="toc-text">4. 最终解决方案</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#12306-%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%8F%82%E6%95%B0%E5%A6%82%E4%BD%95%E8%AE%BE%E7%BD%AE"><span class="toc-number">3.4.</span> <span class="toc-text">12306 线程池参数如何设置</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%9C%89%E9%97%AE%E9%A2%98%E7%9A%84%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%8F%82%E6%95%B0"><span class="toc-number">3.4.1.</span> <span class="toc-text">1. 有问题的线程池参数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E9%87%8D%E6%9E%84%E5%90%8E%E7%9A%84%E7%BA%BF%E7%A8%8B%E6%B1%A0%E5%8F%82%E6%95%B0"><span class="toc-number">3.4.2.</span> <span class="toc-text">2. 重构后的线程池参数</span></a></li></ol></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/22/12306Business-2/" title="12306Business-2">12306Business-2</a><time datetime="2025-04-22T10:14:27.000Z" title="发表于 2025-04-22 18:14:27">2025-04-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/22/12306Business-1/" title="12306Business-1">12306Business-1</a><time datetime="2025-04-22T10:10:07.000Z" title="发表于 2025-04-22 18:10:07">2025-04-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/22/12306Impl-4/" title="12306Impl-4">12306Impl-4</a><time datetime="2025-04-22T10:06:14.000Z" title="发表于 2025-04-22 18:06:14">2025-04-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/22/12306Impl-3/" title="12306Impl-3">12306Impl-3</a><time datetime="2025-04-22T10:03:30.000Z" title="发表于 2025-04-22 18:03:30">2025-04-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/22/12306Impl-2/" title="12306Impl-2">12306Impl-2</a><time datetime="2025-04-22T10:00:54.000Z" title="发表于 2025-04-22 18:00:54">2025-04-22</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2024 - 2025 By Allimac</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>

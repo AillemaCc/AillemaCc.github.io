@@ -1,0 +1,864 @@
+<!DOCTYPE html><html lang="zh-CN" data-theme="light"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width, initial-scale=1.0,viewport-fit=cover"><title>12306Impl-4 | AllimacBlog</title><meta name="author" content="Allimac"><meta name="copyright" content="Allimac"><meta name="format-detection" content="telephone=no"><meta name="theme-color" content="#ffffff"><meta name="description" content="防止库存超卖；布隆过滤器快速返回；抗节假日高并发；中间站点余票如何更新；Binlog更新延迟问题怎么解决；如何保证消息顿列顺序性">
+<meta property="og:type" content="article">
+<meta property="og:title" content="12306Impl-4">
+<meta property="og:url" content="http://example.com/2025/04/22/12306Impl-4/index.html">
+<meta property="og:site_name" content="AllimacBlog">
+<meta property="og:description" content="防止库存超卖；布隆过滤器快速返回；抗节假日高并发；中间站点余票如何更新；Binlog更新延迟问题怎么解决；如何保证消息顿列顺序性">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="http://example.com/img/avatar.png">
+<meta property="article:published_time" content="2025-04-22T10:06:14.000Z">
+<meta property="article:modified_time" content="2025-04-22T10:09:15.102Z">
+<meta property="article:author" content="Allimac">
+<meta property="article:tag" content="消息队列">
+<meta property="article:tag" content="布隆过滤器">
+<meta property="article:tag" content="12306技术梳理">
+<meta property="article:tag" content="高并发问题解决">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="http://example.com/img/avatar.png"><script type="application/ld+json">{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "12306Impl-4",
+  "url": "http://example.com/2025/04/22/12306Impl-4/",
+  "image": "http://example.com/img/avatar.png",
+  "datePublished": "2025-04-22T10:06:14.000Z",
+  "dateModified": "2025-04-22T10:09:15.102Z",
+  "author": [
+    {
+      "@type": "Person",
+      "name": "Allimac",
+      "url": "http://example.com/"
+    }
+  ]
+}</script><link rel="shortcut icon" href="/img/faviconcute.png"><link rel="canonical" href="http://example.com/2025/04/22/12306Impl-4/index.html"><link rel="preconnect" href="//cdn.jsdelivr.net"/><link rel="preconnect" href="//busuanzi.ibruce.info"/><link rel="stylesheet" href="/css/index.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free/css/all.min.css"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.css" media="print" onload="this.media='all'"><script>
+    (() => {
+      
+    const saveToLocal = {
+      set: (key, value, ttl) => {
+        if (!ttl) return
+        const expiry = Date.now() + ttl * 86400000
+        localStorage.setItem(key, JSON.stringify({ value, expiry }))
+      },
+      get: key => {
+        const itemStr = localStorage.getItem(key)
+        if (!itemStr) return undefined
+        const { value, expiry } = JSON.parse(itemStr)
+        if (Date.now() > expiry) {
+          localStorage.removeItem(key)
+          return undefined
+        }
+        return value
+      }
+    }
+
+    window.btf = {
+      saveToLocal,
+      getScript: (url, attr = {}) => new Promise((resolve, reject) => {
+        const script = document.createElement('script')
+        script.src = url
+        script.async = true
+        Object.entries(attr).forEach(([key, val]) => script.setAttribute(key, val))
+        script.onload = script.onreadystatechange = () => {
+          if (!script.readyState || /loaded|complete/.test(script.readyState)) resolve()
+        }
+        script.onerror = reject
+        document.head.appendChild(script)
+      }),
+      getCSS: (url, id) => new Promise((resolve, reject) => {
+        const link = document.createElement('link')
+        link.rel = 'stylesheet'
+        link.href = url
+        if (id) link.id = id
+        link.onload = link.onreadystatechange = () => {
+          if (!link.readyState || /loaded|complete/.test(link.readyState)) resolve()
+        }
+        link.onerror = reject
+        document.head.appendChild(link)
+      }),
+      addGlobalFn: (key, fn, name = false, parent = window) => {
+        if (!false && key.startsWith('pjax')) return
+        const globalFn = parent.globalFn || {}
+        globalFn[key] = globalFn[key] || {}
+        globalFn[key][name || Object.keys(globalFn[key]).length] = fn
+        parent.globalFn = globalFn
+      }
+    }
+  
+      
+      const activateDarkMode = () => {
+        document.documentElement.setAttribute('data-theme', 'dark')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#0d0d0d')
+        }
+      }
+      const activateLightMode = () => {
+        document.documentElement.setAttribute('data-theme', 'light')
+        if (document.querySelector('meta[name="theme-color"]') !== null) {
+          document.querySelector('meta[name="theme-color"]').setAttribute('content', '#ffffff')
+        }
+      }
+
+      btf.activateDarkMode = activateDarkMode
+      btf.activateLightMode = activateLightMode
+
+      const theme = saveToLocal.get('theme')
+    
+          theme === 'dark' ? activateDarkMode() : theme === 'light' ? activateLightMode() : null
+        
+      
+      const asideStatus = saveToLocal.get('aside-status')
+      if (asideStatus !== undefined) {
+        document.documentElement.classList.toggle('hide-aside', asideStatus === 'hide')
+      }
+    
+      
+    const detectApple = () => {
+      if (/iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent)) {
+        document.documentElement.classList.add('apple')
+      }
+    }
+    detectApple()
+  
+    })()
+  </script><script>const GLOBAL_CONFIG = {
+  root: '/',
+  algolia: undefined,
+  localSearch: undefined,
+  translate: undefined,
+  highlight: {"plugin":"highlight.js","highlightCopy":true,"highlightLang":true,"highlightHeightLimit":false,"highlightFullpage":false,"highlightMacStyle":false},
+  copy: {
+    success: '复制成功',
+    error: '复制失败',
+    noSupport: '浏览器不支持'
+  },
+  relativeDate: {
+    homepage: false,
+    post: false
+  },
+  runtime: '',
+  dateSuffix: {
+    just: '刚刚',
+    min: '分钟前',
+    hour: '小时前',
+    day: '天前',
+    month: '个月前'
+  },
+  copyright: undefined,
+  lightbox: 'null',
+  Snackbar: {"chs_to_cht":"已切换为繁体中文","cht_to_chs":"已切换为简体中文","day_to_night":"已切换为深色模式","night_to_day":"已切换为浅色模式","bgLight":"#49b1f5","bgDark":"#1f1f1f","position":"bottom-left"},
+  infinitegrid: {
+    js: 'https://cdn.jsdelivr.net/npm/@egjs/infinitegrid/dist/infinitegrid.min.js',
+    buttonText: '加载更多'
+  },
+  isPhotoFigcaption: false,
+  islazyloadPlugin: false,
+  isAnchor: false,
+  percent: {
+    toc: true,
+    rightside: false,
+  },
+  autoDarkmode: false
+}</script><script id="config-diff">var GLOBAL_CONFIG_SITE = {
+  title: '12306Impl-4',
+  isHighlightShrink: false,
+  isToc: true,
+  pageType: 'post'
+}</script><meta name="generator" content="Hexo 7.3.0"></head><body><div id="sidebar"><div id="menu-mask"></div><div id="sidebar-menus"><div class="avatar-img text-center"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="site-data text-center"><a href="/archives/"><div class="headline">文章</div><div class="length-num">61</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">65</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 链接</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></li><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></li></ul></div></div></div></div><div class="post" id="body-wrap"><header class="post-bg" id="page-header" style="background-image: url(/img/nature_top_image.png);"><nav id="nav"><span id="blog-info"><a class="nav-site-title" href="/"><span class="site-name">AllimacBlog</span></a><a class="nav-page-title" href="/"><span class="site-name">12306Impl-4</span></a></span><div id="menus"><div class="menus_items"><div class="menus_item"><a class="site-page" href="/"><i class="fa-fw fas fa-home"></i><span> 首页</span></a></div><div class="menus_item"><a class="site-page" href="/archives/"><i class="fa-fw fas fa-archive"></i><span> 归档</span></a></div><div class="menus_item"><a class="site-page" href="/tags/"><i class="fa-fw fas fa-tags"></i><span> 标签</span></a></div><div class="menus_item"><a class="site-page" href="/categories/"><i class="fa-fw fas fa-folder-open"></i><span> 分类</span></a></div><div class="menus_item"><span class="site-page group"><i class="fa-fw fas fa-list"></i><span> 链接</span><i class="fas fa-chevron-down"></i></span><ul class="menus_item_child"><li><a class="site-page child" href="/link/"><i class="fa-fw fas fa-link"></i><span> 友链</span></a></li><li><a class="site-page child" href="/about/"><i class="fa-fw fas fa-heart"></i><span> 关于</span></a></li></ul></div></div><div id="toggle-menu"><span class="site-page"><i class="fas fa-bars fa-fw"></i></span></div></div></nav><div id="post-info"><h1 class="post-title">12306Impl-4</h1><div id="post-meta"><div class="meta-firstline"><span class="post-meta-date"><i class="far fa-calendar-alt fa-fw post-meta-icon"></i><span class="post-meta-label">发表于</span><time class="post-meta-date-created" datetime="2025-04-22T10:06:14.000Z" title="发表于 2025-04-22 18:06:14">2025-04-22</time><span class="post-meta-separator">|</span><i class="fas fa-history fa-fw post-meta-icon"></i><span class="post-meta-label">更新于</span><time class="post-meta-date-updated" datetime="2025-04-22T10:09:15.102Z" title="更新于 2025-04-22 18:09:15">2025-04-22</time></span><span class="post-meta-categories"><span class="post-meta-separator">|</span><i class="fas fa-inbox fa-fw post-meta-icon"></i><a class="post-meta-categories" href="/categories/12306/">12306</a></span></div><div class="meta-secondline"><span class="post-meta-separator">|</span><span class="post-meta-wordcount"><i class="far fa-file-word fa-fw post-meta-icon"></i><span class="post-meta-label">总字数:</span><span class="word-count">9.9k</span><span class="post-meta-separator">|</span><i class="far fa-clock fa-fw post-meta-icon"></i><span class="post-meta-label">阅读时长:</span><span>32分钟</span></span><span class="post-meta-separator">|</span><span class="post-meta-pv-cv" id="" data-flag-title=""><i class="far fa-eye fa-fw post-meta-icon"></i><span class="post-meta-label">浏览量:</span><span id="busuanzi_value_page_pv"><i class="fa-solid fa-spinner fa-spin"></i></span></span></div></div></div></header><main class="layout" id="content-inner"><div id="post"><article class="container post-content" id="article-container"><h1 id="购买列车余票如何防止库存超卖？"><a href="#购买列车余票如何防止库存超卖？" class="headerlink" title="购买列车余票如何防止库存超卖？"></a>购买列车余票如何防止库存超卖？</h1><h2 id="常见库存超卖解决方案"><a href="#常见库存超卖解决方案" class="headerlink" title="常见库存超卖解决方案"></a>常见库存超卖解决方案</h2><h3 id="1-数据库乐观锁"><a href="#1-数据库乐观锁" class="headerlink" title="1. 数据库乐观锁"></a>1. 数据库乐观锁</h3><p>判断库存数量 stock 大于等于扣减数量 pendingCounts，判断正确才会更新 SQL。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">UPDATE</span></span><br><span class="line">	product_stock</span><br><span class="line"><span class="keyword">SET</span></span><br><span class="line">	stock <span class="operator">=</span> stock <span class="operator">-</span> #&#123;pendingCounts&#125; </span><br><span class="line"><span class="keyword">WHERE</span> </span><br><span class="line">	id <span class="operator">=</span> #&#123;skuId&#125; <span class="keyword">and</span> stock <span class="operator">&gt;=</span> #&#123;pendingCounts&#125;</span><br></pre></td></tr></table></figure>
+
+<p>应用中调用该方法后，判断数据修改行数是否大于0，如果条件判断不成功即修改失败，直接抛出异常即可</p>
+<h3 id="2-Redis-缓存余量扣减"><a href="#2-Redis-缓存余量扣减" class="headerlink" title="2. Redis 缓存余量扣减"></a>2. Redis 缓存余量扣减</h3><p>将商品 SKU 库存放到缓存，存储一个字符串或 Hash 类型。Key 是商品 SKU ID，Value 是商品 SKU 对应的库存数量，利用 Redis 的 incrby 特性来扣减库存，可以解决超扣和性能问题。</p>
+<p>扣减库存成功后，继续执行数据库的扣减以及下订单等一系列流程。</p>
+<h3 id="3-为什么不用？"><a href="#3-为什么不用？" class="headerlink" title="3. 为什么不用？"></a>3. 为什么不用？</h3><p>假设，我们有一件商品华为 Mate 60 Pro，外观+版本+选择版本一起就组成了唯一的 SKU。</p>
+<p>比如我购买了砚黑色，对宣白色的库存没有任何影响。但是大家想一下，12306 的库存是这样么？如果购买济南西到杭州东的车票，流程图如下所示，要扣减站点相关的多个站点库存，有关联属性。所以上面的这些版本并不适用于 12306 的列车座位余量扣减业务。</p>
+<p><strong>也就是说，不管是乐观锁还是redis缓存余量扣减，都不适合这种扣减之间关联的场景。</strong></p>
+<h2 id="令牌限流算法"><a href="#令牌限流算法" class="headerlink" title="令牌限流算法"></a>令牌限流算法</h2><p>令牌限流算法并不等同于令牌桶限流算法，两者语义以及要解决的功能点不同。</p>
+<blockquote>
+<h3 id="1-设计目的不同"><a href="#1-设计目的不同" class="headerlink" title="1. 设计目的不同"></a>1. <strong>设计目的不同</strong></h3><ul>
+<li><strong>令牌桶算法（Token Bucket）</strong><br>核心目标是 <strong>控制请求的平均速率</strong>，同时允许一定程度的突发流量。<ul>
+<li>通过固定速率向桶中添加令牌，请求需获取令牌才能执行。</li>
+<li>若桶中有足够令牌，突发请求可以一次性通过（如桶满时允许短时间内大量请求）。</li>
+</ul>
+</li>
+<li><strong>令牌限流算法（Token-based Rate Limiting）</strong><br>通常指 <strong>直接限制并发数</strong>（如并发请求、连接数等），而非速率。<ul>
+<li>系统分配固定数量的令牌，每个请求占用一个令牌，释放后返还。</li>
+<li>例如：数据库连接池限制10个并发连接，即只有10个令牌。</li>
+</ul>
+</li>
+</ul>
+<p>当然了，因为列车的票有时效性，过时不会返还余票。但是你退票还是可以通过更新缓存的方式释放令牌的</p>
+</blockquote>
+<p><a target="_blank" rel="noopener" href="https://imgse.com/i/pE42dZ8"><img src="https://s21.ax1x.com/2025/04/20/pE42dZ8.png" alt="pE42dZ8.png"></a></p>
+<p>以上这些都是令牌容器中的 Key，令牌容器是个 Hash 结构，上面这些都是 Hash 结构中的内部 Key。每个 Key 都会对应一个 Value，Value 也就是对应出发站点-到达站点-座位类型的余量。</p>
+<p>Redis 中实际存储如下所示：</p>
+<p><a target="_blank" rel="noopener" href="https://imgse.com/i/pE42rGj"><img src="https://s21.ax1x.com/2025/04/20/pE42rGj.png" alt="pE42rGj.png"></a></p>
+<h3 id="1-过滤多余请求流量"><a href="#1-过滤多余请求流量" class="headerlink" title="1. 过滤多余请求流量"></a>1. 过滤多余请求流量</h3><p>令牌限流同 Redis 缓存余量扣减逻辑类似，都是通过一个前置流程对无效流量进行限制，因为列车一共就那些票，你买的人再多，终归只有个别用户能成功，多余的流量在前置购票环节直接返回。</p>
+<p><a target="_blank" rel="noopener" href="https://imgse.com/i/pE42sRs"><img src="https://s21.ax1x.com/2025/04/20/pE42sRs.png" alt="pE42sRs.png"></a></p>
+<h3 id="2-避免座位余量超卖"><a href="#2-避免座位余量超卖" class="headerlink" title="2. 避免座位余量超卖"></a>2. 避免座位余量超卖</h3><p>如果购买济南西到杭州东的车票，流程图如下所示，要扣减站点相关的多个站点库存。</p>
+<p>[<img src="https://s21.ax1x.com/2025/04/19/pE4MgDU.png" alt="pE4MgDU.png"></p>
+<p>令牌限流容器中的数据，是与列车余票一一对应的。<br>流程就是获取到出发站点和到达站点之间的相关联站点，以上图为准。通过 Redis 查询这些关联站点的余票是否充足，如果充足则先从令牌限流算法中扣减相关的余量，通过 Redis Hash 结构的 hincrby 命令进行自减。</p>
+<p>然后用户拿到令牌后，进行座位分配、座位锁定以及创建订单等逻辑。座位锁定时，和自减的令牌限流里的站点一致，参考上图所示。</p>
+<p>这里有个问题，我们在令牌限流容器里进行自减，因为要操作多个 Hash Key，多个hashKey的扣减，无法通过一条increment指令完成，必然要遍历再操作。</p>
+<p>Redis的原子指令increment，只能保证单个hashKey的原子性。这个多站点的自减是非原子性的，所以我们需要通过 LUA 脚本完成。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><blockquote>
+<h3 id="问题核心"><a href="#问题核心" class="headerlink" title="问题核心"></a><strong>问题核心</strong></h3><p>你想通过 Redis 直接缓存余票数据，并在扣减时直接操作这些数据（而不是先走令牌限流）。但有人指出，由于余票之间存在 <strong>关联属性</strong>（比如多个站点的余票需要同时扣减），直接缓存余票并扣减可能不合适。  </p>
+<p><strong>关键问题：</strong>  </p>
+<ol>
+<li><strong>为什么不能直接缓存余票数据，用 Redis 扣减？</strong>  </li>
+<li><strong>为什么需要先走令牌限流（多站点扣减），再用 Lua 保证原子性？</strong></li>
+</ol>
+<hr>
+<h2 id="1-直接缓存余票数据的问题"><a href="#1-直接缓存余票数据的问题" class="headerlink" title="1. 直接缓存余票数据的问题"></a><strong>1. 直接缓存余票数据的问题</strong></h2><p>如果直接缓存余票数据（比如 <code>ticket:A-B:100</code>），并在用户购票时直接扣减，可能会遇到以下问题：</p>
+<h3 id="1-余票的关联性导致扣减复杂"><a href="#1-余票的关联性导致扣减复杂" class="headerlink" title="(1) 余票的关联性导致扣减复杂"></a><strong>(1) 余票的关联性导致扣减复杂</strong></h3><ul>
+<li><p><strong>余票不是独立的</strong>：<br>例如，A→D 的票，实际上会影响 A-B、B-C、C-D 等多个区间的余票。  </p>
+<ul>
+<li>用户买 A→D，需要同时扣减：  <ul>
+<li><code>A-B</code> 余票  </li>
+<li><code>B-C</code> 余票  </li>
+<li><code>C-D</code> 余票</li>
+</ul>
+</li>
+<li><strong>不能只扣减一个区间</strong>，否则会导致超卖（比如 A-B 余票够，但 B-C 已经卖完）。</li>
+</ul>
+</li>
+<li><p><strong>直接缓存余票时，如何保证多区间原子扣减？</strong>  </p>
+<ul>
+<li>Redis 的 <code>DECR</code>&#x2F;<code>INCR</code> 只能操作单个 Key，无法保证多个 Key 的原子性。  </li>
+<li>如果分步扣减：<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">DECR ticket:A-B  # 成功</span><br><span class="line">DECR ticket:B-C  # 失败（余票不足）</span><br></pre></td></tr></table></figure>
+<strong>此时 A-B 已经被扣减，但 B-C 失败，导致数据不一致！</strong></li>
+</ul>
+</li>
+</ul>
+<h3 id="2-高并发下的竞态条件"><a href="#2-高并发下的竞态条件" class="headerlink" title="(2) 高并发下的竞态条件"></a><strong>(2) 高并发下的竞态条件</strong></h3><ul>
+<li>如果多个用户同时购买同一区间的票：<ul>
+<li>用户1 检查 <code>A-B</code> 余票&#x3D;1，准备扣减  </li>
+<li>用户2 检查 <code>A-B</code> 余票&#x3D;1，准备扣减  </li>
+<li>两者都扣减成功，导致 <strong>超卖</strong>（实际余票&#x3D;0，但卖了2张）。</li>
+</ul>
+</li>
+</ul>
+<p><strong>直接缓存余票 + 非原子扣减 &#x3D; 数据不一致风险！</strong>  </p>
+<hr>
+<h2 id="2-为什么需要令牌限流-Lua-脚本？"><a href="#2-为什么需要令牌限流-Lua-脚本？" class="headerlink" title="2. 为什么需要令牌限流 + Lua 脚本？"></a><strong>2. 为什么需要令牌限流 + Lua 脚本？</strong></h2><h3 id="1-令牌限流的作用"><a href="#1-令牌限流的作用" class="headerlink" title="(1) 令牌限流的作用"></a><strong>(1) 令牌限流的作用</strong></h3><ul>
+<li><strong>先进行流量管控</strong>：<br>令牌限流（如令牌桶）可以控制请求的速率，避免瞬时高并发直接冲击余票扣减逻辑。  </li>
+<li><strong>减少无效请求</strong>：<br>如果令牌不足（比如余票已经售罄），直接拒绝请求，减少 Redis 操作压力。</li>
+</ul>
+<h3 id="2-Lua-脚本的作用"><a href="#2-Lua-脚本的作用" class="headerlink" title="(2) Lua 脚本的作用"></a><strong>(2) Lua 脚本的作用</strong></h3><ul>
+<li><strong>保证多 Key 操作的原子性</strong>：<br>由于余票扣减涉及多个区间（如 A-B、B-C、C-D），必须保证 <strong>要么全部扣减成功，要么全部失败</strong>。  <ul>
+<li>Lua 脚本在 Redis 中是 <strong>单线程执行</strong>，可以确保多个 <code>DECR</code> 操作是原子的。</li>
+</ul>
+</li>
+</ul>
+<p><strong>示例 Lua 脚本：</strong></p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">local</span> keys = &#123;<span class="string">&#x27;ticket:A-B&#x27;</span>, <span class="string">&#x27;ticket:B-C&#x27;</span>, <span class="string">&#x27;ticket:C-D&#x27;</span>&#125;</span><br><span class="line"><span class="keyword">local</span> quantity = <span class="number">1</span>  <span class="comment">-- 扣减1张票</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 检查所有区间余票是否充足</span></span><br><span class="line"><span class="keyword">for</span> _, key <span class="keyword">in</span> <span class="built_in">ipairs</span>(keys) <span class="keyword">do</span></span><br><span class="line">    <span class="keyword">if</span> <span class="built_in">tonumber</span>(redis.call(<span class="string">&#x27;GET&#x27;</span>, key)) &lt; quantity <span class="keyword">then</span></span><br><span class="line">        <span class="keyword">return</span> <span class="number">0</span>  <span class="comment">-- 余票不足，直接返回失败</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="comment">-- 所有区间余票充足，执行扣减</span></span><br><span class="line"><span class="keyword">for</span> _, key <span class="keyword">in</span> <span class="built_in">ipairs</span>(keys) <span class="keyword">do</span></span><br><span class="line">    redis.call(<span class="string">&#x27;DECRBY&#x27;</span>, key, quantity)</span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> <span class="number">1</span>  <span class="comment">-- 扣减成功</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-为什么不能直接用-Redis-缓存余票？"><a href="#3-为什么不能直接用-Redis-缓存余票？" class="headerlink" title="(3) 为什么不能直接用 Redis 缓存余票？"></a><strong>(3) 为什么不能直接用 Redis 缓存余票？</strong></h3><ul>
+<li><strong>可以缓存余票</strong>，但必须用 <strong>Lua 脚本</strong> 保证多区间扣减的原子性。  </li>
+<li>如果不用 Lua，而是分步扣减：<ul>
+<li>可能部分成功、部分失败 → <strong>数据不一致</strong>  </li>
+<li>高并发时可能超卖 → <strong>业务错误</strong></li>
+</ul>
+</li>
+</ul>
+<hr>
+<h2 id="3-最佳实践方案"><a href="#3-最佳实践方案" class="headerlink" title="3. 最佳实践方案"></a><strong>3. 最佳实践方案</strong></h2><table>
+<thead>
+<tr>
+<th><strong>方案</strong></th>
+<th><strong>适用场景</strong></th>
+<th><strong>优点</strong></th>
+<th><strong>缺点</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>直接缓存余票 + Lua 扣减</strong></td>
+<td>余票逻辑简单，无额外限流需求</td>
+<td>实现简单，直接操作余票</td>
+<td>高并发时可能压力大</td>
+</tr>
+<tr>
+<td><strong>令牌限流 + Lua 扣减</strong></td>
+<td>高并发场景，需要先管控流量</td>
+<td>减少无效请求，保护后端</td>
+<td>实现稍复杂</td>
+</tr>
+<tr>
+<td><strong>数据库 + 分布式锁</strong></td>
+<td>强一致性要求（如金融级）</td>
+<td>数据最准确</td>
+<td>性能较差</td>
+</tr>
+</tbody></table>
+<h3 id="推荐方案"><a href="#推荐方案" class="headerlink" title="推荐方案"></a><strong>推荐方案</strong></h3><ol>
+<li><strong>先走令牌限流</strong>（减少无效请求冲击）。  </li>
+<li><strong>用 Lua 脚本原子化扣减多区间余票</strong>（避免超卖）。  </li>
+<li><strong>扣减成功后，再执行座位锁定、订单创建</strong>。</li>
+</ol>
+<hr>
+<h2 id="结论"><a href="#结论" class="headerlink" title="结论"></a><strong>结论</strong></h2><ul>
+<li><strong>直接缓存余票是可以的，但必须用 Lua 脚本保证多 Key 扣减的原子性</strong>，否则会出现超卖或数据不一致。  </li>
+<li><strong>令牌限流的作用是管控流量</strong>，避免大量无效请求直接冲击余票扣减逻辑。  </li>
+<li><strong>最佳方案 &#x3D; 令牌限流 + Lua 扣减</strong>，既能限流，又能保证数据一致性。</li>
+</ul>
+<p>如果你的业务并发量不高，可以 <strong>直接缓存余票 + Lua 扣减</strong>；如果并发高，建议 <strong>先限流，再扣减</strong>。</p>
+</blockquote>
+<h1 id="用户注册布隆过滤器容量设置以及碰撞率问题"><a href="#用户注册布隆过滤器容量设置以及碰撞率问题" class="headerlink" title="用户注册布隆过滤器容量设置以及碰撞率问题"></a>用户注册布隆过滤器容量设置以及碰撞率问题</h1><p>什么是布隆过滤器，我之前的文章应该有所提及。一些基本的概念，我也不再赘述</p>
+<h2 id="用户注册场景布隆过滤器实战"><a href="#用户注册场景布隆过滤器实战" class="headerlink" title="用户注册场景布隆过滤器实战"></a>用户注册场景布隆过滤器实战</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="meta">@ConfigurationProperties(prefix = BloomFilterPenetrateProperties.PREFIX)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">BloomFilterPenetrateProperties</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="type">String</span> <span class="variable">PREFIX</span> <span class="operator">=</span> <span class="string">&quot;framework.cache.redis.bloom-filter.default&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 布隆过滤器默认实例名称</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">String</span> <span class="variable">name</span> <span class="operator">=</span> <span class="string">&quot;cache_penetration_bloom_filter&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 每个元素的预期插入量</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">Long</span> <span class="variable">expectedInsertions</span> <span class="operator">=</span> <span class="number">64L</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 预期错误概率</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="type">Double</span> <span class="variable">falseProbability</span> <span class="operator">=</span> <span class="number">0.03D</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableConfigurationProperties(UserRegisterBloomFilterProperties.class)</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">class</span> <span class="title class_">RBloomFilterConfiguration</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 防止用户注册缓存穿透的布隆过滤器</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="keyword">public</span> RBloomFilter&lt;String&gt; <span class="title function_">userRegisterCachePenetrationBloomFilter</span><span class="params">(RedissonClient redissonClient, UserRegisterBloomFilterProperties userRegisterBloomFilterProperties)</span> &#123;</span><br><span class="line">        RBloomFilter&lt;String&gt; cachePenetrationBloomFilter = redissonClient.getBloomFilter(userRegisterBloomFilterProperties.getName());</span><br><span class="line">        cachePenetrationBloomFilter.tryInit(userRegisterBloomFilterProperties.getExpectedInsertions(), userRegisterBloomFilterProperties.getFalseProbability());</span><br><span class="line">        <span class="keyword">return</span> cachePenetrationBloomFilter;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>进行配置-拿到配置-进行初始化</p>
+<blockquote>
+<p>是的，<strong>预期插入量（<code>expectedInsertions</code>）</strong> 是决定布隆过滤器（Bloom Filter）大小的核心参数之一，它会直接影响布隆过滤器的位数组（Bit Array）长度和哈希函数的数量。以下是关键关系的详细说明：</p>
+<hr>
+<h3 id="1-布隆过滤器大小的计算公式"><a href="#1-布隆过滤器大小的计算公式" class="headerlink" title="1. 布隆过滤器大小的计算公式"></a><strong>1. 布隆过滤器大小的计算公式</strong></h3><p>布隆过滤器的位数组大小（<code>m</code>）和哈希函数数量（<code>k</code>）由以下两个参数决定：</p>
+<ul>
+<li><strong>预期插入量（<code>n</code>）</strong>：即 <code>expectedInsertions</code>，表示预计会存入布隆过滤器的元素数量。</li>
+<li><strong>预期错误概率（<code>p</code>）</strong>：即 <code>falseProbability</code>，表示允许的误判率（如 <code>0.03</code> 表示 3%）。</li>
+</ul>
+<p><strong>计算公式</strong>：</p>
+<ol>
+<li><p><strong>位数组大小（<code>m</code>）</strong>：<br>[<br>m &#x3D; -\frac{n \cdot \ln{p}}{(\ln{2})^2}<br>]</p>
+<ul>
+<li>插入量 <code>n</code> 越大，位数组 <code>m</code> 越大（占用内存更多）。</li>
+<li>错误率 <code>p</code> 越小，位数组 <code>m</code> 越大（精度更高）。</li>
+</ul>
+</li>
+<li><p><strong>哈希函数数量（<code>k</code>）</strong>：<br>[<br>k &#x3D; \frac{m}{n} \ln{2}<br>]</p>
+<ul>
+<li>通常取整数（如 <code>Math.round(k)</code>）。</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="2-你的配置示例分析"><a href="#2-你的配置示例分析" class="headerlink" title="2. 你的配置示例分析"></a><strong>2. 你的配置示例分析</strong></h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">expectedInsertions = <span class="number">64L</span>;</span><br><span class="line">falseProbability = <span class="number">0.03D</span>;</span><br></pre></td></tr></table></figure>
+<p>代入公式计算：</p>
+<ol>
+<li><p><strong>位数组大小（<code>m</code>）</strong>：<br>[<br>m &#x3D; -\frac{64 \cdot \ln{0.03}}{(\ln{2})^2} \approx -\frac{64 \cdot (-3.5066)}{0.4805} \approx 467 \text{ bits}<br>]</p>
+<ul>
+<li>实际实现中会向上取整（如 <code>512 bits</code>，即 <code>64 bytes</code>）。</li>
+</ul>
+</li>
+<li><p><strong>哈希函数数量（<code>k</code>）</strong>：<br>[<br>k &#x3D; \frac{467}{64} \cdot 0.693 \approx 5.0<br>]</p>
+<ul>
+<li>最终会使用 <code>5</code> 个哈希函数。</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="3-预期插入量如何影响布隆过滤器？"><a href="#3-预期插入量如何影响布隆过滤器？" class="headerlink" title="3. 预期插入量如何影响布隆过滤器？"></a><strong>3. 预期插入量如何影响布隆过滤器？</strong></h3><ul>
+<li><strong>插入量过小</strong>：<ul>
+<li>位数组 <code>m</code> 较小，内存占用少，但容易因实际元素超出预期导致误判率飙升。</li>
+</ul>
+</li>
+<li><strong>插入量过大</strong>：<ul>
+<li>位数组 <code>m</code> 较大，内存占用高，但能容纳更多元素，误判率稳定。</li>
+</ul>
+</li>
+<li><strong>动态调整</strong>：<ul>
+<li>如果实际插入量远超 <code>expectedInsertions</code>，需重建布隆过滤器（否则误判率会远高于 <code>falseProbability</code>）。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="4-为什么不能直接使用缓存存储所有数据？"><a href="#4-为什么不能直接使用缓存存储所有数据？" class="headerlink" title="4. 为什么不能直接使用缓存存储所有数据？"></a><strong>4. 为什么不能直接使用缓存存储所有数据？</strong></h3><p>你提到的场景（如余票扣减）中，布隆过滤器的作用是：</p>
+<ol>
+<li><strong>快速拦截无效请求</strong>（如查询不存在的车次），避免穿透到数据库。</li>
+<li><strong>减少不必要的余票检查</strong>（布隆过滤器判定“可能存在”时才查 Redis&#x2F;DB）。</li>
+<li><strong>与令牌限流互补</strong>：<ul>
+<li>布隆过滤器：解决 <strong>缓存穿透</strong>（查询不存在的数据）。</li>
+<li>令牌限流：解决 <strong>并发超卖</strong>（原子化扣减余票）。</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="5-最佳实践建议"><a href="#5-最佳实践建议" class="headerlink" title="5. 最佳实践建议"></a><strong>5. 最佳实践建议</strong></h3><ol>
+<li><strong>合理设置 <code>expectedInsertions</code></strong>：<ul>
+<li>略大于实际业务峰值（如历史最大数据量的 <code>1.2~1.5</code> 倍）。</li>
+</ul>
+</li>
+<li><strong>监控误判率</strong>：<ul>
+<li>实际误判率超过 <code>falseProbability</code> 时，需扩容或重建布隆过滤器。</li>
+</ul>
+</li>
+<li><strong>结合业务场景</strong>：<ul>
+<li>高频但允许少量误判的场景（如缓存穿透防护），可适当调高 <code>falseProbability</code> 以减少内存占用。</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="总结-1"><a href="#总结-1" class="headerlink" title="总结"></a><strong>总结</strong></h3><ul>
+<li><strong>预期插入量 <code>expectedInsertions</code> 直接决定布隆过滤器的位数组大小和哈希函数数量</strong>。</li>
+<li>配置时需权衡 <strong>内存占用</strong> 和 <strong>误判率</strong>，避免因实际数据量超出预期导致性能下降。</li>
+<li>在余票扣减等场景中，布隆过滤器 + 令牌限流 + Lua 脚本是一个完整的 <strong>高并发防护方案</strong>。</li>
+</ul>
+</blockquote>
+<p>本地设置只需要很少的并发量，在线设置我看了一下，支持10亿个预期插入量和千分之一的错判率，需要1.67gb的内存，这个占用量完全可以看出布隆过滤器的强大之处</p>
+<h3 id="3-初始容量评估不够用怎么办"><a href="#3-初始容量评估不够用怎么办" class="headerlink" title="3. 初始容量评估不够用怎么办"></a>3. 初始容量评估不够用怎么办</h3><p>如果随着国内人口的越来越多，之前评估的布隆过滤器容量不够了怎么办？</p>
+<p>我们可以有个定时任务，每天统计已注册人数有多少，和布隆过滤器的预期值差值还有多少。假设布隆过滤器容量设置 14 亿，当已注册人数达到这个数量 80%时，我们通过后台任务重建布隆过滤器，在 14 亿的基础上再增加一定的数量即可。</p>
+<p>所以没有什么是加一层不能解决的</p>
+<h1 id="怎么抗节假日的高并发"><a href="#怎么抗节假日的高并发" class="headerlink" title="怎么抗节假日的高并发"></a>怎么抗节假日的高并发</h1><p>或者说，节假日redis怎么抗住高并发</p>
+<p>可以先或说redis怎么部署的，再结合业务场景说一下高并发</p>
+<h2 id="Redis-常用部署架构"><a href="#Redis-常用部署架构" class="headerlink" title="Redis 常用部署架构"></a>Redis 常用部署架构</h2><h3 id="1-单机部署"><a href="#1-单机部署" class="headerlink" title="1. 单机部署"></a>1. 单机部署</h3><ul>
+<li><p>架构描述：单台服务器上运行 Redis 服务。</p>
+</li>
+<li><p>可能问题：</p>
+<ul>
+<li><p>单点故障：如果 Redis 实例所在的服务器发生故障，会导致整个服务不可用。</p>
+</li>
+<li><p>有限的内存：受限于单台服务器的内存容量，无法处理大规模数据集。</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="2-主从复制（Master-Slave）"><a href="#2-主从复制（Master-Slave）" class="headerlink" title="2. 主从复制（Master-Slave）"></a>2. 主从复制（Master-Slave）</h3><ul>
+<li><p>架构描述：一个 Redis 主节点负责写操作，多个从节点复制主节点的数据，并处理读操作。</p>
+</li>
+<li><p>可能问题：</p>
+<ul>
+<li><p>主节点故障：如果主节点发生故障，需要手动进行故障转移或者通过 Sentinel 进行自动故障转移。</p>
+</li>
+<li><p>从节点复制延迟：由于复制是异步的，从节点可能会有一定程度的数据延迟。</p>
+</li>
+</ul>
+</li>
+</ul>
+<h3 id="3-Sentinel-哨兵模式"><a href="#3-Sentinel-哨兵模式" class="headerlink" title="3. Sentinel 哨兵模式"></a>3. Sentinel 哨兵模式</h3><ul>
+<li><p>架构描述：Sentinel 是 Redis 提供的一种用于监控和自动故障转移的工具。它可以监控多个 Redis 主从节点，并在主节点故障时自动将一个从节点提升为新的主节点。</p>
+</li>
+<li><p>可能问题：</p>
+<ul>
+<li><p>Sentinel 故障：如果 Sentinel 集群本身发生故障，可能会影响自动故障转移的功能。</p>
+</li>
+<li><p>故障转移过程中的数据一致性：在故障转移期间可能会出现数据不一致的情况。</p>
+</li>
+</ul>
+</li>
+</ul>
+<p>Sentinel <strong>不改变数据存储或复制的本质</strong>，只是为主从模式添加了高可用能力，因此它属于<strong>高可用解决方案</strong>而非独立部署模式。</p>
+<h3 id="4-Redis-Cluster"><a href="#4-Redis-Cluster" class="headerlink" title="4. Redis Cluster"></a>4. Redis Cluster</h3><blockquote>
+<p>是的！在 <strong>Redis Cluster</strong> 中，<strong>不只有一个主节点</strong>，而是由<strong>多个主节点（Masters）共同组成</strong>，每个主节点负责一部分数据（分片），同时每个主节点还配有对应的从节点（Replicas）以实现高可用。以下是详细说明：</p>
+<hr>
+<h3 id="1-Redis-Cluster-的核心设计"><a href="#1-Redis-Cluster-的核心设计" class="headerlink" title="1. Redis Cluster 的核心设计"></a><strong>1. Redis Cluster 的核心设计</strong></h3><h4 id="1-数据分片（Sharding）"><a href="#1-数据分片（Sharding）" class="headerlink" title="(1) 数据分片（Sharding）"></a><strong>(1) 数据分片（Sharding）</strong></h4><ul>
+<li><strong>多个主节点</strong>：Redis Cluster 将数据分散到 <strong>16384 个哈希槽（Slots）</strong> 中，这些槽被<strong>均匀分配</strong>给多个主节点。  <ul>
+<li>例如：3 个主节点的集群，每个主节点大约负责 5461 个槽（16384 ÷ 3 ≈ 5461）。</li>
+</ul>
+</li>
+<li><strong>每个主节点独立读写</strong>：客户端访问数据时，集群会根据 Key 的 CRC16 哈希值决定由哪个主节点处理。</li>
+</ul>
+<h4 id="2-高可用（HA）"><a href="#2-高可用（HA）" class="headerlink" title="(2) 高可用（HA）"></a><strong>(2) 高可用（HA）</strong></h4><ul>
+<li><strong>每个主节点有 1 个或多个从节点</strong>：  <ul>
+<li>主节点故障时，从节点会自动晋升为新主节点（通过集群的故障转移机制）。  </li>
+<li>从节点默认不处理读请求（需显式配置 <code>READONLY</code>）。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="2-为什么需要多个主节点？"><a href="#2-为什么需要多个主节点？" class="headerlink" title="2. 为什么需要多个主节点？"></a><strong>2. 为什么需要多个主节点？</strong></h3><table>
+<thead>
+<tr>
+<th><strong>原因</strong></th>
+<th><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td><strong>水平扩展性能</strong></td>
+<td>多主节点并行处理读写请求，突破单机 CPU&#x2F;内存&#x2F;网络瓶颈。</td>
+</tr>
+<tr>
+<td><strong>数据分布式存储</strong></td>
+<td>数据分散在多个节点，避免单节点存储容量不足。</td>
+</tr>
+<tr>
+<td><strong>故障隔离</strong></td>
+<td>单个主节点故障仅影响其负责的槽，其他主节点仍正常服务。</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="3-集群部署示例"><a href="#3-集群部署示例" class="headerlink" title="3. 集群部署示例"></a><strong>3. 集群部署示例</strong></h3><p>假设一个 6 节点的 Redis Cluster：</p>
+<ul>
+<li><strong>3 个主节点</strong>（Master1、Master2、Master3）  <ul>
+<li>分别负责 Slot 0-5460、5461-10922、10923-16383。</li>
+</ul>
+</li>
+<li><strong>3 个从节点</strong>（Replica1、Replica2、Replica3）  <ul>
+<li>分别复制对应主节点的数据。</li>
+</ul>
+</li>
+</ul>
+<p><strong>架构图</strong>：</p>
+<figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Master1 (Slots 0-5460)   -- Replica1</span><br><span class="line">Master2 (Slots 5461-10922) -- Replica2</span><br><span class="line">Master3 (Slots 10923-16383) -- Replica3</span><br></pre></td></tr></table></figure>
+
+<hr>
+<h3 id="4-客户端如何访问集群？"><a href="#4-客户端如何访问集群？" class="headerlink" title="4. 客户端如何访问集群？"></a><strong>4. 客户端如何访问集群？</strong></h3><ul>
+<li><strong>智能客户端</strong>（如 Lettuce、Jedis Cluster）：  <ul>
+<li>客户端缓存槽与节点的映射关系，直接路由请求到正确的主节点。  </li>
+<li>若主节点返回 <code>MOVED</code> 重定向，客户端更新本地缓存。</li>
+</ul>
+</li>
+<li><strong>代理中间件</strong>（如 Twemproxy）：  <ul>
+<li>代理层负责将请求转发到对应的主节点（较少用，性能有损耗）。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="5-关键注意事项"><a href="#5-关键注意事项" class="headerlink" title="5. 关键注意事项"></a><strong>5. 关键注意事项</strong></h3><ol>
+<li><p><strong>主节点数量规划</strong>：  </p>
+<ul>
+<li>至少 3 个主节点以保证最小高可用（官方推荐生产环境至少 6 节点：3 主 + 3 从）。  </li>
+<li>主节点越多，集群吞吐量越高，但管理复杂度也增加。</li>
+</ul>
+</li>
+<li><p><strong>槽分配均衡</strong>：  </p>
+<ul>
+<li>确保数据均匀分布在所有主节点（可通过 <code>CLUSTER ADDSLOTS</code> 手动调整）。</li>
+</ul>
+</li>
+<li><p><strong>从节点的作用</strong>：  </p>
+<ul>
+<li>默认不参与读，除非显式配置 <code>READONLY</code>（需容忍数据不一致）。</li>
+</ul>
+</li>
+<li><p><strong>故障转移</strong>：  </p>
+<ul>
+<li>主节点宕机时，其从节点会通过选举成为新主节点（需多数节点投票）。</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="6-常见问题解答"><a href="#6-常见问题解答" class="headerlink" title="6. 常见问题解答"></a><strong>6. 常见问题解答</strong></h3><h4 id="Q：可以只有主节点，不要从节点吗？"><a href="#Q：可以只有主节点，不要从节点吗？" class="headerlink" title="Q：可以只有主节点，不要从节点吗？"></a><strong>Q：可以只有主节点，不要从节点吗？</strong></h4><ul>
+<li><strong>可以，但不推荐</strong>：  <ul>
+<li>无从节点时，主节点故障会导致部分数据不可用（违背高可用设计）。  </li>
+<li>生产环境必须部署从节点！</li>
+</ul>
+</li>
+</ul>
+<h4 id="Q：主节点数量可以动态增加吗？"><a href="#Q：主节点数量可以动态增加吗？" class="headerlink" title="Q：主节点数量可以动态增加吗？"></a><strong>Q：主节点数量可以动态增加吗？</strong></h4><ul>
+<li><strong>可以</strong>：  <ul>
+<li>通过 <code>CLUSTER MEET</code> 添加新节点，然后使用 <code>CLUSTER REBALANCE</code> 重新分配槽。  </li>
+<li>但需注意数据迁移期间的性能影响。</li>
+</ul>
+</li>
+</ul>
+<h4 id="Q：所有主节点都能执行写操作吗？"><a href="#Q：所有主节点都能执行写操作吗？" class="headerlink" title="Q：所有主节点都能执行写操作吗？"></a><strong>Q：所有主节点都能执行写操作吗？</strong></h4><ul>
+<li><strong>是的</strong>：  <ul>
+<li>每个主节点独立处理自己负责的槽的写请求，<strong>无需全局协调</strong>（性能高）。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="7-总结"><a href="#7-总结" class="headerlink" title="7. 总结"></a><strong>7. 总结</strong></h3><ul>
+<li><strong>Redis Cluster 是多主节点架构</strong>，数据分片到多个主节点，每个主节点对应一个或多个从节点。  </li>
+<li><strong>优势</strong>：水平扩展、高性能、高可用。  </li>
+<li><strong>默认配置</strong>：主节点处理读写，从节点仅作备份（可配置为读分离）。  </li>
+<li><strong>生产建议</strong>：至少 3 主 3 从，确保数据均匀分布和故障容灾。</li>
+</ul>
+<p>通过合理规划主节点数量和槽分配，Redis Cluster 可以轻松支撑百万级 QPS 和高并发场景。</p>
+</blockquote>
+<p>海量并发场景需要 Redis 提供很高的读写性能以及容灾能力，大家对于 Redis Cluster 了解会比较多，也认为这个架构是最能扛住海量并发场景的。但其实不是这样，对于小规模集群 Redis Cluster 使用是没问题的，如果对于大规模集群就有点捉襟见肘了。</p>
+<h2 id="如何看待-Cluster-模式应对海量并发？"><a href="#如何看待-Cluster-模式应对海量并发？" class="headerlink" title="如何看待 Cluster 模式应对海量并发？"></a>如何看待 Cluster 模式应对海量并发？</h2><h3 id="1-为什么-Cluster-模式不适合超大规模集群？"><a href="#1-为什么-Cluster-模式不适合超大规模集群？" class="headerlink" title="1. 为什么 Cluster 模式不适合超大规模集群？"></a>1. 为什么 Cluster 模式不适合超大规模集群？</h3><p>Redis Cluster 的优点是易于使用。分片、主从复制、弹性扩容这些功能都可以做到自动化，通过简单的部署就可以获得一个大容量、高可靠、高可用的 Redis 集群，并且对于应用来说，近乎于是透明的。</p>
+<p>所以，<strong>Redis Cluster 是非常适合构建中小规模 Redis 集群</strong>，这里的中小规模指的是，大概几个到几十个节点这样规模的 Redis 集群。</p>
+<p>**但是 Redis Cluster 不太适合构建超大规模集群，主要原因是，它采用了去中心化的设计。**刚刚我们讲了，Redis 的每个节点上，都保存了所有槽和节点的映射关系表，客户端可以访问任意一个节点，再通过重定向命令，找到数据所在的那个节点。那你有没有想过一个问题，这个映射关系表，它是如何更新的呢？比如说，集群加入了新节点，或者某个主节点宕机了，新的主节点被选举出来，这些情况下，都需要更新集群每一个节点上的映射关系表。</p>
+<blockquote>
+<h3 id="流言协议（Gossip-Protocol）极简解释"><a href="#流言协议（Gossip-Protocol）极简解释" class="headerlink" title="流言协议（Gossip Protocol）极简解释"></a><strong>流言协议（Gossip Protocol）极简解释</strong></h3><p><strong>一句话定义</strong>：<br>流言协议是一种 <strong>去中心化的通信方式</strong>，节点之间像“传八卦”一样随机交换信息，最终让所有节点都知道最新数据。  </p>
+<hr>
+<h3 id="核心特点（用现实比喻）"><a href="#核心特点（用现实比喻）" class="headerlink" title="核心特点（用现实比喻）"></a><strong>核心特点</strong>（用现实比喻）</h3><ol>
+<li><strong>随机传播</strong>  <ul>
+<li>就像你听到一个八卦后，随机告诉身边的几个人，他们再告诉其他人，最终全校都知道。</li>
+</ul>
+</li>
+<li><strong>去中心化</strong>  <ul>
+<li>没有“校长广播”，全靠学生口口相传（没有单点故障）。</li>
+</ul>
+</li>
+<li><strong>最终一致性</strong>  <ul>
+<li>不是立刻所有人同步，但最终大家都会知道真相（数据会逐渐一致）。</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h3 id="Redis-如何使用流言协议？"><a href="#Redis-如何使用流言协议？" class="headerlink" title="Redis 如何使用流言协议？"></a><strong>Redis 如何使用流言协议？</strong></h3><ul>
+<li><strong>Redis Cluster</strong> 用流言协议让所有节点知道：  <ul>
+<li>其他节点是活着还是挂了。  </li>
+<li>哪个主节点负责哪些数据（Slot 分配）。</li>
+</ul>
+</li>
+<li><strong>工作流程</strong>：  <ol>
+<li>节点 A 随机选节点 B，发送自己的信息（如：“我是主节点，负责 Slot 1-100”）。  </li>
+<li>节点 B 更新自己的信息，再随机告诉节点 C、D……  </li>
+<li>几轮后，所有节点信息一致。</li>
+</ol>
+</li>
+</ul>
+<hr>
+<h3 id="为什么用流言协议？"><a href="#为什么用流言协议？" class="headerlink" title="为什么用流言协议？"></a><strong>为什么用流言协议？</strong></h3><ul>
+<li><strong>优点</strong>：简单、容错性强（少数节点挂了不影响全网）。  </li>
+<li><strong>缺点</strong>：信息同步有延迟（适合对实时性要求不高的场景）。</li>
+</ul>
+<p><strong>类比</strong>：  </p>
+<ul>
+<li><strong>适合</strong>：班级里传放假通知（晚点知道没关系）。  </li>
+<li><strong>不适合</strong>：火警报警（必须立刻全员知道）。 </li>
+<li><strong>不适合</strong>：超大集群的流言协议，传播的太慢。数据不同步的问题被明显放大</li>
+</ul>
+<hr>
+<h3 id="总结-2"><a href="#总结-2" class="headerlink" title="总结"></a><strong>总结</strong></h3><p>流言协议就是 <strong>“随机传染式”同步信息</strong>，Redis 用它实现集群状态管理，简单又可靠。</p>
+</blockquote>
+<h3 id="2-如何用-Redis-构建超大规模集群？"><a href="#2-如何用-Redis-构建超大规模集群？" class="headerlink" title="2. 如何用 Redis 构建超大规模集群？"></a>2. 如何用 Redis 构建超大规模集群？</h3><p>Redis Cluster 不太适合用于大规模集群，所以很多大厂，都选择自己去搭建 Redis 集群。这里面，每一家的解决方案都有自己的特色，但其实总体的架构都是大同小异的。</p>
+<p>一种是基于代理的方式，<strong>在客户端和 Redis 节点之间，还需要增加一层代理服务</strong>。这个代理服务有三个作用:</p>
+<ol>
+<li>第一个作用：<strong>负责在客户端和 Redis 节点之间转发请求和响应</strong>。客户端只和代理服务打交道，代理收到客户端的请求之后，再转发到对应的 Redis 节点上，节点返回的响应再经由代理转发返回给客户端。</li>
+<li>第二个作用：<strong>负责监控集群中所有 Redis 节点状态</strong>，如果发现有问题节点，及时进行主从切换。</li>
+<li>第三个作用：**维护集群的元数据。**这个元数据主要就是集群所有节点的主从信息，以及槽和节点关系映射表。<strong>HAProxy+Keepalived 来代理 MySQL 请求的架构是类似的，只是多了一个自动分片路由的功能</strong> 而已。</li>
+</ol>
+<p>第三个作用，基本上解决了流言协议在超大集群当中，放大数据不一致的问题</p>
+<p><strong>代理层（如 Codis&#x2F;Tair Proxy）统一管理集群元数据（主从信息、槽位映射）的设计，本质上是为了规避流言协议（Gossip）在大规模集群中的同步瓶颈</strong>。</p>
+<p>这个架构最大的优点是对客户端透明，在客户端视角来看，<strong>整个集群和一个超大容量的单节点 Redis 是一样的</strong>。并且，由于分片算法是代理服务控制的，扩容也比较方便，新节点加入集群后，直接修改代理服务中的元数据就可以完成扩容。</p>
+<p>不过，这个架构的缺点也很突出，增加了一层代理转发，每次数据访问的链路更长了，必然会带来一定的性能损失。而且，代理服务本身又是集群的一个单点，当然，我们可以把代理服务也做成一个集群来解决单点问题，那样集群就更复杂了。</p>
+<p>另外一种方式是，不用这个代理服务，把代理服务的寻址功能前移到客户端中去。客户端在发起请求之前，先去查询元数据，就可以知道要访问的是哪个分片和哪个节点，然后直连对应的 Redis 节点访问数据。JAVA 客户端 Jedis 就支持这个功能。</p>
+<p>当然，客户端不用每次都去查询元数据，因为这个元数据是不怎么变化的，客户端可以自己缓存元数据，这样访问性能基本上和单机版的 Redis 是一样的。如果某个分片的主节点宕机了，新的主节点被选举出来之后，更新元数据里面的信息。对集群的扩容操作也比较简单，除了迁移数据的工作必须要做以外，更新一下元数据就可以了。</p>
+<p><a target="_blank" rel="noopener" href="https://imgse.com/i/pE4Rd61"><img src="https://s21.ax1x.com/2025/04/20/pE4Rd61.png" alt="pE4Rd61.png"></a></p>
+<p>可以看看得物的解决方案</p>
+<p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/dnlxCXgAxHsfyVNYTDsewA">技术文章链接</a></p>
+<h1 id="购买列车中间站点余票如何更新？"><a href="#购买列车中间站点余票如何更新？" class="headerlink" title="购买列车中间站点余票如何更新？"></a>购买列车中间站点余票如何更新？</h1><p>本质上还是余票扣减的逻辑</p>
+<h2 id="扣减余票逻辑"><a href="#扣减余票逻辑" class="headerlink" title="扣减余票逻辑"></a>扣减余票逻辑</h2><p>余票扣减伴随着两个逻辑：</p>
+<ol>
+<li>一个是锁定数据库的列车座位车票状态记录，从可售状态变更为锁定状态。</li>
+<li>另一个是将缓存中的座位余量进行扣减，卖出去一个自减一，卖出去两个自减二。</li>
+</ol>
+<h3 id="1-更新列车座位车票状态"><a href="#1-更新列车座位车票状态" class="headerlink" title="1. 更新列车座位车票状态"></a>1. 更新列车座位车票状态</h3><p>列车车票表如下所示：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">CREATE TABLE `t_seat` (</span><br><span class="line">  `id` bigint(<span class="number">20</span>) unsigned NOT NULL AUTO_INCREMENT COMMENT <span class="string">&#x27;ID&#x27;</span>,</span><br><span class="line">  `train_id` bigint(<span class="number">20</span>) DEFAULT NULL COMMENT <span class="string">&#x27;列车ID&#x27;</span>,</span><br><span class="line">  `carriage_number` varchar(<span class="number">64</span>) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT <span class="string">&#x27;车厢号&#x27;</span>,</span><br><span class="line">  `seat_number` varchar(<span class="number">64</span>) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT <span class="string">&#x27;座位号&#x27;</span>,</span><br><span class="line">  `seat_type` <span class="type">int</span>(<span class="number">3</span>) DEFAULT NULL COMMENT <span class="string">&#x27;座位类型&#x27;</span>,</span><br><span class="line">  `start_station` varchar(<span class="number">256</span>) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT <span class="string">&#x27;起始站&#x27;</span>,</span><br><span class="line">  `end_station` varchar(<span class="number">256</span>) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT <span class="string">&#x27;终点站&#x27;</span>,</span><br><span class="line">  `price` <span class="type">int</span>(<span class="number">11</span>) DEFAULT NULL COMMENT <span class="string">&#x27;车票价格&#x27;</span>,</span><br><span class="line">  `seat_status` <span class="type">int</span>(<span class="number">3</span>) DEFAULT NULL COMMENT <span class="string">&#x27;座位状态&#x27;</span>,</span><br><span class="line">  `create_time` datetime DEFAULT NULL COMMENT <span class="string">&#x27;创建时间&#x27;</span>,</span><br><span class="line">  `update_time` datetime DEFAULT NULL COMMENT <span class="string">&#x27;修改时间&#x27;</span>,</span><br><span class="line">  `del_flag` tinyint(<span class="number">1</span>) DEFAULT NULL COMMENT <span class="string">&#x27;删除标识&#x27;</span>,</span><br><span class="line">  PRIMARY <span class="title function_">KEY</span> <span class="params">(`id`)</span>,</span><br><span class="line">  KEY `idx_train_id` (`train_id`) USING BTREE</span><br><span class="line">) ENGINE=InnoDB AUTO_INCREMENT=<span class="number">1685114673839570945</span> DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT=<span class="string">&#x27;座位表&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>列车座位状态枚举如下所示，共有三个状态：可售、锁定、已售</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> org.opengoofy.index12306.biz.ticketservice.common.enums;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> lombok.Getter;</span><br><span class="line"><span class="keyword">import</span> lombok.RequiredArgsConstructor;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 座位状态枚举</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * @公众号：马丁玩编程，回复：加群，添加马哥微信（备注：12306）获取项目资料</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@RequiredArgsConstructor</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">enum</span> <span class="title class_">SeatStatusEnum</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 可售：列车座位初始化时状态</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    AVAILABLE(<span class="number">0</span>),</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 锁定：用户下单选中了座位，改为锁定状态，将不能再被选中</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    LOCKED(<span class="number">1</span>),</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 已售：用户订单支付后，修改为已售状态</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    SOLD(<span class="number">2</span>);</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Getter</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">final</span> Integer code;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>每一个列车的车厢座位都代表着一条记录，初始化列车座位时状态为可售状态。</p>
+<p>在购票请求里，会有出发站点和到达站点，但如果要对相关站点进行扣减，只知道出发站点和到达站点是不够的，需要知道列车所有站点，并根据扣减逻辑进行计算相关的站点。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="keyword">public</span> List&lt;RouteDTO&gt; <span class="title function_">listTakeoutTrainStationRoute</span><span class="params">(String trainId, String departure, String arrival)</span> &#123;</span><br><span class="line">    LambdaQueryWrapper&lt;TrainStationDO&gt; queryWrapper = Wrappers.lambdaQuery(TrainStationDO.class)</span><br><span class="line">            .eq(TrainStationDO::getTrainId, trainId)</span><br><span class="line">            .select(TrainStationDO::getDeparture);</span><br><span class="line">    <span class="comment">// 获取列车所有站点，通过所有站点计算需要锁定座位的站点集合</span></span><br><span class="line">    List&lt;TrainStationDO&gt; trainStationDOList = trainStationMapper.selectList(queryWrapper);</span><br><span class="line">    List&lt;String&gt; trainStationAllList = trainStationDOList.stream().map(TrainStationDO::getDeparture).collect(Collectors.toList());</span><br><span class="line">    <span class="comment">// 根据工具类计算需要扣减沿途关联的站点</span></span><br><span class="line">    <span class="keyword">return</span> StationCalculateUtil.takeoutStation(trainStationAllList, departure, arrival);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 计算出发站和终点站需要扣减余票的站点（包含出发站和终点站）</span></span><br><span class="line"><span class="comment"> * 整体比较复杂，建议大家知道有这个东西就好，没必要研究细节</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> stations     所有站点数据</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> startStation 出发站</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> endStation   终点站</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span> 出发站和终点站需要扣减余票的站点（包含出发站和终点站）</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> List&lt;RouteDTO&gt; <span class="title function_">takeoutStation</span><span class="params">(List&lt;String&gt; stations, String startStation, String endStation)</span> &#123;</span><br><span class="line">    List&lt;RouteDTO&gt; takeoutStationList = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">    <span class="type">int</span> <span class="variable">startIndex</span> <span class="operator">=</span> stations.indexOf(startStation);</span><br><span class="line">    <span class="type">int</span> <span class="variable">endIndex</span> <span class="operator">=</span> stations.indexOf(endStation);</span><br><span class="line">    <span class="keyword">if</span> (startIndex == -<span class="number">1</span> || endIndex == -<span class="number">1</span> || startIndex &gt;= endIndex) &#123;</span><br><span class="line">        <span class="keyword">return</span> takeoutStationList;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (startIndex != <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> <span class="number">0</span>; i &lt; startIndex; i++) &#123;</span><br><span class="line">            <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> <span class="number">1</span>; j &lt; stations.size() - startIndex; j++) &#123;</span><br><span class="line">                takeoutStationList.add(<span class="keyword">new</span> <span class="title class_">RouteDTO</span>(stations.get(i), stations.get(startIndex + j)));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">i</span> <span class="operator">=</span> startIndex; i &lt;= endIndex; i++) &#123;</span><br><span class="line">        <span class="keyword">for</span> (<span class="type">int</span> <span class="variable">j</span> <span class="operator">=</span> i + <span class="number">1</span>; j &lt; stations.size() &amp;&amp; i &lt; endIndex; j++) &#123;</span><br><span class="line">            takeoutStationList.add(<span class="keyword">new</span> <span class="title class_">RouteDTO</span>(stations.get(i), stations.get(j)));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> takeoutStationList;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="2-扣减缓存座位余量"><a href="#2-扣减缓存座位余量" class="headerlink" title="2. 扣减缓存座位余量"></a>2. 扣减缓存座位余量</h3><p>写到这里的时候，我觉得需要复盘一下买票的时候构建缓存的逻辑</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 责任链模式 验证城市名称是否存在、不存在加载缓存以及出发日期不能小于当前日期等等</span></span><br><span class="line">        ticketPageQueryAbstractChainContext.handler(TicketChainMarkEnum.TRAIN_QUERY_FILTER.name(), requestParam);</span><br><span class="line">        <span class="type">StringRedisTemplate</span> <span class="variable">stringRedisTemplate</span> <span class="operator">=</span> (StringRedisTemplate) distributedCache.getInstance();</span><br><span class="line">        <span class="comment">// 列车查询逻辑较为复杂，详细解析文章查看 https://nageoffer.com/12306/question</span></span><br><span class="line">        <span class="comment">// v1 版本存在严重的性能深渊问题，v2 版本完美的解决了该问题。通过 Jmeter 压测聚合报告得知，性能提升在 300% - 500%+</span></span><br><span class="line">        List&lt;Object&gt; stationDetails = stringRedisTemplate.opsForHash()</span><br><span class="line">                .multiGet(REGION_TRAIN_STATION_MAPPING, Lists.newArrayList(requestParam.getFromStation(), requestParam.getToStation()));</span><br><span class="line">        <span class="type">long</span> <span class="variable">count</span> <span class="operator">=</span> stationDetails.stream().filter(Objects::isNull).count();</span><br><span class="line">        <span class="keyword">if</span> (count &gt; <span class="number">0</span>) &#123;</span><br><span class="line">            <span class="type">RLock</span> <span class="variable">lock</span> <span class="operator">=</span> redissonClient.getLock(LOCK_REGION_TRAIN_STATION_MAPPING);</span><br><span class="line">            lock.lock();</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                stationDetails = stringRedisTemplate.opsForHash()</span><br><span class="line">                        .multiGet(REGION_TRAIN_STATION_MAPPING, Lists.newArrayList(requestParam.getFromStation(), requestParam.getToStation()));</span><br><span class="line">                count = stationDetails.stream().filter(Objects::isNull).count();</span><br><span class="line">                <span class="keyword">if</span> (count &gt; <span class="number">0</span>) &#123;</span><br><span class="line">                    List&lt;StationDO&gt; stationDOList = stationMapper.selectList(Wrappers.emptyWrapper());</span><br><span class="line">                    Map&lt;String, String&gt; regionTrainStationMap = <span class="keyword">new</span> <span class="title class_">HashMap</span>&lt;&gt;();</span><br><span class="line">                    stationDOList.forEach(each -&gt; regionTrainStationMap.put(each.getCode(), each.getRegionName()));</span><br><span class="line">                    stringRedisTemplate.opsForHash().putAll(REGION_TRAIN_STATION_MAPPING, regionTrainStationMap);</span><br><span class="line">                    stationDetails = <span class="keyword">new</span> <span class="title class_">ArrayList</span>&lt;&gt;();</span><br><span class="line">                    stationDetails.add(regionTrainStationMap.get(requestParam.getFromStation()));</span><br><span class="line">                    stationDetails.add(regionTrainStationMap.get(requestParam.getToStation()));</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                lock.unlock();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="type">long</span> <span class="variable">count</span> <span class="operator">=</span> stationDetails.stream().filter(Objects::isNull).count();</span><br></pre></td></tr></table></figure>
+
+
+
+<ul>
+<li><strong><code>stationDetails</code></strong>：是通过 <code>multiGet</code> 从 Redis Hash 中批量查询的结果（<code>List&lt;Object&gt;</code>），顺序对应请求的 <code>fromStation</code> 和 <code>toStation</code>。</li>
+<li><strong><code>Objects::isNull</code></strong>：过滤出查询结果为 <code>null</code> 的项。</li>
+<li><strong><code>count</code></strong>：表示 <strong>未在缓存中找到的车站数量</strong>（即 <code>stationDetails</code> 中 <code>null</code> 的个数）。</li>
+</ul>
+<h4 id="缓存未命中（count-0）"><a href="#缓存未命中（count-0）" class="headerlink" title="缓存未命中（count &gt; 0）"></a><strong>缓存未命中（<code>count &gt; 0</code>）</strong></h4><ul>
+<li><strong>条件</strong>：<code>fromStation</code> 或 <code>toStation</code> 的映射信息 <strong>至少有一个不在缓存</strong>。</li>
+<li><strong>表现</strong>：<br><code>stationDetails</code> 中存在 <code>null</code> → <code>count &gt; 0</code> → <strong>进入锁内逻辑</strong>，从数据库加载数据并填充缓存。</li>
+</ul>
+<p>再说回扣减缓存的事</p>
+<p>假如扣减数据库和缓存扣减放在一个流程里，也就是传统秒杀架构的操作redis，因为这个操作必须要是原子性的，要么全部成功，要么全部失败</p>
+<p>如果用户买了三张票，在扣减过程中，或者全部扣减完之后，程序直接宕机了怎么办？</p>
+<p>数据库的记录可以通过事务回滚方式保证数据正确性，那 Redis 中这个数据就没办法回滚了。就会造成列车数据明明没有被卖，但是展示没有余票。</p>
+<p>所以我们通过 <strong>监听 MySQL Binlog → 异步扣减 Redis</strong>，实现最终一致性：</p>
+<p>只有 MySQL 事务提交后才会触发 Redis 扣减，杜绝数据不一致。</p>
+<h1 id="余票Binlog更新延迟问题如何解决？"><a href="#余票Binlog更新延迟问题如何解决？" class="headerlink" title="余票Binlog更新延迟问题如何解决？"></a>余票Binlog更新延迟问题如何解决？</h1><p>这个流程换来的是最终一致性，但是他的复杂程度让扣减出现了延迟</p>
+<blockquote>
+<h3 id="Binlog-异步扣减的延迟来源分析"><a href="#Binlog-异步扣减的延迟来源分析" class="headerlink" title="Binlog + 异步扣减的延迟来源分析"></a><strong>Binlog + 异步扣减的延迟来源分析</strong></h3><p>在 <strong>Binlog 监听 + 异步扣减 Redis</strong> 的方案中，延迟主要出现在以下几个环节，每个环节都可能引入毫秒级到秒级的延迟：</p>
+<hr>
+<h3 id="1-MySQL-Binlog-生成与同步延迟"><a href="#1-MySQL-Binlog-生成与同步延迟" class="headerlink" title="1. MySQL Binlog 生成与同步延迟"></a><strong>1. MySQL Binlog 生成与同步延迟</strong></h3><h4 id="1-MySQL-事务提交到-Binlog-写入"><a href="#1-MySQL-事务提交到-Binlog-写入" class="headerlink" title="(1) MySQL 事务提交到 Binlog 写入"></a><strong>(1) MySQL 事务提交到 Binlog 写入</strong></h4><ul>
+<li><strong>MySQL 事务提交后</strong>，会先将操作记录到 <strong>Binlog 文件</strong>（默认 <code>sync_binlog=1</code> 时每次提交刷盘）。</li>
+<li><strong>潜在延迟</strong>：  <ul>
+<li>若 <code>sync_binlog=0</code>（依赖 OS 刷盘），宕机可能丢失 Binlog。  </li>
+<li>若 <code>sync_binlog=N</code>（每 N 次提交刷盘），可能延迟 N 次事务的时间（通常可控在毫秒级）。</li>
+</ul>
+</li>
+</ul>
+<h4 id="2-Binlog-文件切换与复制"><a href="#2-Binlog-文件切换与复制" class="headerlink" title="(2) Binlog 文件切换与复制"></a><strong>(2) Binlog 文件切换与复制</strong></h4><ul>
+<li><strong>Binlog 文件切换</strong>：当单个 Binlog 文件写满（默认 1GB）或定时切换时，会有短暂延迟。  </li>
+<li><strong>主从复制延迟</strong>（如果监听从库的 Binlog）：  <ul>
+<li>主库 Binlog 传输到从库 + 从库重放 Binlog 的延迟（网络抖动或从库负载高时可能秒级）。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="2-Binlog-解析工具（Canal-Debezium）处理延迟"><a href="#2-Binlog-解析工具（Canal-Debezium）处理延迟" class="headerlink" title="2. Binlog 解析工具（Canal&#x2F;Debezium）处理延迟"></a><strong>2. Binlog 解析工具（Canal&#x2F;Debezium）处理延迟</strong></h3><h4 id="1-解析-Binlog-的时机"><a href="#1-解析-Binlog-的时机" class="headerlink" title="(1) 解析 Binlog 的时机"></a><strong>(1) 解析 Binlog 的时机</strong></h4><ul>
+<li><strong>工具轮询间隔</strong>：如 Canal 默认 1s 扫描一次 Binlog 文件的新增内容。  </li>
+<li><strong>解析复杂度</strong>：  <ul>
+<li>若 Binlog 中包含大事务（如批量插入），解析耗时增加（可能百毫秒级）。</li>
+</ul>
+</li>
+</ul>
+<h4 id="2-网络传输到-MQ"><a href="#2-网络传输到-MQ" class="headerlink" title="(2) 网络传输到 MQ"></a><strong>(2) 网络传输到 MQ</strong></h4><ul>
+<li><strong>Binlog 事件 → MQ 生产者</strong>：  <ul>
+<li>网络往返时间（通常 1~10ms，跨机房可能更高）。  </li>
+<li>MQ 生产者确认机制（如 RocketMQ 同步刷盘时延迟更高）。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="3-消息队列（MQ）的投递与消费延迟"><a href="#3-消息队列（MQ）的投递与消费延迟" class="headerlink" title="3. 消息队列（MQ）的投递与消费延迟"></a><strong>3. 消息队列（MQ）的投递与消费延迟</strong></h3><h4 id="1-消息堆积与消费速度"><a href="#1-消息堆积与消费速度" class="headerlink" title="(1) 消息堆积与消费速度"></a><strong>(1) 消息堆积与消费速度</strong></h4><ul>
+<li><strong>消费者并发度不足</strong>：若 MQ 消息量突增（如秒杀场景），消费者处理速度跟不上，导致消息积压（秒级甚至分钟级延迟）。  </li>
+<li><strong>顺序消费限制</strong>：  <ul>
+<li>如需保证同一车次的余票扣减顺序性，只能单线程消费 → 吞吐量下降。</li>
+</ul>
+</li>
+</ul>
+<h4 id="2-MQ-自身机制"><a href="#2-MQ-自身机制" class="headerlink" title="(2) MQ 自身机制"></a><strong>(2) MQ 自身机制</strong></h4><ul>
+<li><strong>RocketMQ 异步刷盘</strong>：默认异步刷盘时，宕机可能丢失少量消息（可通过同步刷盘避免，但延迟增加）。  </li>
+<li><strong>Kafka 的 <code>acks</code> 配置</strong>：  <ul>
+<li><code>acks=1</code>（Leader 确认）比 <code>acks=all</code>（ISR 全部确认）延迟更低，但可靠性下降。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="4-Redis-操作延迟"><a href="#4-Redis-操作延迟" class="headerlink" title="4. Redis 操作延迟"></a><strong>4. Redis 操作延迟</strong></h3><h4 id="1-消费者处理逻辑"><a href="#1-消费者处理逻辑" class="headerlink" title="(1) 消费者处理逻辑"></a><strong>(1) 消费者处理逻辑</strong></h4><ul>
+<li><strong>业务逻辑耗时</strong>：如消费者需查询其他服务（如风控系统）后才能扣减 Redis。  </li>
+<li><strong>Redis 网络延迟</strong>：  <ul>
+<li>跨机房访问 Redis 可能增加 10~100ms 延迟。</li>
+</ul>
+</li>
+</ul>
+<h4 id="2-Redis-集群扩展性"><a href="#2-Redis-集群扩展性" class="headerlink" title="(2) Redis 集群扩展性"></a><strong>(2) Redis 集群扩展性</strong></h4><ul>
+<li><strong>热点 Key 竞争</strong>：  <ul>
+<li>同一车次的余票扣减集中在某个 Redis 分片，导致单节点压力大（可通过分片优化）。</li>
+</ul>
+</li>
+<li><strong>Pipeline&#x2F;Multi 操作</strong>：  <ul>
+<li>批量扣减可减少网络往返，但事务（MULTI）会增加 Redis 服务端耗时。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="5-延迟汇总（典型场景）"><a href="#5-延迟汇总（典型场景）" class="headerlink" title="5. 延迟汇总（典型场景）"></a><strong>5. 延迟汇总（典型场景）</strong></h3><table>
+<thead>
+<tr>
+<th><strong>环节</strong></th>
+<th><strong>延迟范围</strong></th>
+<th><strong>优化手段</strong></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MySQL Binlog 生成</td>
+<td>0.1ms ~ 100ms</td>
+<td>调优 <code>sync_binlog</code> 和 <code>binlog_group_commit</code></td>
+</tr>
+<tr>
+<td>Binlog 解析工具</td>
+<td>1ms ~ 1s</td>
+<td>增加 Canal&#x2F;Debezium 并行度</td>
+</tr>
+<tr>
+<td>MQ 生产与消费</td>
+<td>1ms ~ 10s</td>
+<td>提升消费者并发数，分区扩容</td>
+</tr>
+<tr>
+<td>Redis 操作</td>
+<td>0.1ms ~ 100ms</td>
+<td>使用 Pipeline，避免大 Key</td>
+</tr>
+<tr>
+<td><strong>总延迟（P99）</strong></td>
+<td><strong>10ms ~ 5s</strong></td>
+<td>综合优化后通常可控制在 1s 内</td>
+</tr>
+</tbody></table>
+<hr>
+<h3 id="6-如何减少延迟？"><a href="#6-如何减少延迟？" class="headerlink" title="6. 如何减少延迟？"></a><strong>6. 如何减少延迟？</strong></h3><h4 id="1-MySQL-层优化"><a href="#1-MySQL-层优化" class="headerlink" title="(1) MySQL 层优化"></a><strong>(1) MySQL 层优化</strong></h4><ul>
+<li>设置 <code>sync_binlog=1</code> + <code>binlog_group_commit_sync_delay=0</code>（平衡安全性与性能）。  </li>
+<li>避免大事务（如批量插入拆分为小事务）。</li>
+</ul>
+<h4 id="2-Binlog-解析优化"><a href="#2-Binlog-解析优化" class="headerlink" title="(2) Binlog 解析优化"></a><strong>(2) Binlog 解析优化</strong></h4><ul>
+<li>Canal&#x2F;Debezium 部署在 MySQL 同机房，减少网络延迟。  </li>
+<li>增加解析线程数（如 Canal 的 <code>parallelThreadSize</code>）。</li>
+</ul>
+<h4 id="3-MQ-层优化"><a href="#3-MQ-层优化" class="headerlink" title="(3) MQ 层优化"></a><strong>(3) MQ 层优化</strong></h4><ul>
+<li>使用高性能 MQ（如 RocketMQ&#x2F;Kafka），分区数 ≥ 消费者数。  </li>
+<li>消费者侧：<ul>
+<li>异步非阻塞消费（如 RocketMQ 的 <code>ConsumeMessageOrderly</code> 改为并发消费）。  </li>
+<li>批量消费（如 Kafka 的 <code>max.poll.records</code>）。</li>
+</ul>
+</li>
+</ul>
+<h4 id="4-Redis-层优化"><a href="#4-Redis-层优化" class="headerlink" title="(4) Redis 层优化"></a><strong>(4) Redis 层优化</strong></h4><ul>
+<li>使用 Redis Pipeline 批量扣减。  </li>
+<li>热点数据分片（如按车次 Hash 分片）。</li>
+</ul>
+<hr>
+<h3 id="7-业务容忍度与权衡"><a href="#7-业务容忍度与权衡" class="headerlink" title="7. 业务容忍度与权衡"></a><strong>7. 业务容忍度与权衡</strong></h3><ul>
+<li><strong>可容忍延迟</strong>：  <ul>
+<li>余票展示允许秒级不一致（如实际余票 100，前端显示 99）。</li>
+</ul>
+</li>
+<li><strong>不可容忍场景</strong>：  <ul>
+<li>需结合 <strong>预扣减（前端限制）+ 最终扣减（Binlog）</strong> 保证用户体验。</li>
+</ul>
+</li>
+</ul>
+<hr>
+<h3 id="总结-3"><a href="#总结-3" class="headerlink" title="总结"></a><strong>总结</strong></h3><p>Binlog + 异步扣减的延迟主要来自 <strong>MySQL Binlog 生成、解析工具处理、MQ 传输、Redis 操作</strong> 四个环节。通过针对性优化（如调整 MySQL 参数、提升消费者并发、Redis Pipeline），可将总延迟控制在秒级以内，适合大多数高并发票务场景。</p>
+</blockquote>
+<p>在业务当中，本质上是 Binlog 更新延迟后库存更新缓慢，就会导致列车查询中座位余量数据不准确。假如消费 Binlog 延迟了两秒，那列车座位余量就会相应有个两秒以上的更新延迟。</p>
+<p>为什么是两秒以上？因为拿到 Binlog 还需要去修改 Redis 等，同样需要时间。</p>
+<h2 id="12306-怎么做的？"><a href="#12306-怎么做的？" class="headerlink" title="12306 怎么做的？"></a>12306 怎么做的？</h2><p>Binlog 数据更新方案一定有延迟，这是肯定的。</p>
+<p>因为从用户的写请求到数据库，数据库触发 Binlog，Canal 监听到 Binlog 再投递到 RocketMQ，以及 12306 的购票服务监听到 RocketMQ 消息最终到 Redis，这是个不算是短链路。</p>
+<p>根据已有经验来看，正常情况下本地更新延迟大概在300-1000ms左右，因为本地还连接着公网的服务器中间件，可能会慢一点。如果是生产环境，这个延迟会更低，因为生产环境的网络都在一个组里。</p>
+<p>300-1000ms 算慢么？我理解不算。Canal 监听 Binlog 本身不会成为这个流程的短板，因为 Canal 的集群模式做的是主备，而不是多主多从架构，这就说明了，Canal 对自己监听和投递性能的绝对自信。</p>
+<p>主备什么意思？哪怕你部署了集群，同一时间只有一个 Canal 实例生效。</p>
+<p>而消息队列就更不用担心性能了，RocketMQ 支持多主多从集群架构，同一时间可以运行多个接收消息发送的 Broker，性能会随着 Broker 的增加，而成倍增加。</p>
+<p>12306 应用和 Redis 就不过多描述了，也不会成为性能瓶颈。</p>
+<p><strong>但是真正的12306根本不在乎余票在前端更新的效率，只要防止超卖就行了</strong></p>
+<h2 id="Binlog-更新延迟有什么问题？"><a href="#Binlog-更新延迟有什么问题？" class="headerlink" title="Binlog 更新延迟有什么问题？"></a>Binlog 更新延迟有什么问题？</h2><p>我们想一下，如果列车座位余票展示的不及时，会不会发生超卖问题？毕竟展示有延迟可以接受，超卖问题就不能接受了。</p>
+<p>通过令牌限流容器可以有效防止座位超卖问题。用户把令牌申请完了就开始返回快速失败了，余票可能会有一个小的延迟更新。</p>
+<h1 id="监听Binlog的RocketMQ如何保证顺序性？"><a href="#监听Binlog的RocketMQ如何保证顺序性？" class="headerlink" title="监听Binlog的RocketMQ如何保证顺序性？"></a>监听Binlog的RocketMQ如何保证顺序性？</h1><p>我们能保证 Canal 投递 RocketMQ 的顺序性，再保证 RocketMQ 消费的顺序性，当然就能保证监听binlog的顺序性</p>
+<p>RocketMQ 如何保证消费顺序性</p>
+<h2 id="RocketMQ-如何保证消费顺序性？"><a href="#RocketMQ-如何保证消费顺序性？" class="headerlink" title="RocketMQ 如何保证消费顺序性？"></a>RocketMQ 如何保证消费顺序性？</h2><p>在RocketMQ的官网，我们可以看到关于顺序消费的文章</p>
+<p><a target="_blank" rel="noopener" href="https://rocketmq.apache.org/zh/docs/featureBehavior/03fifomessage/">文章链接</a></p>
+<p>其实在我们这个场景之下，不保证消息队列的顺序性没什么问题。因为在我们的缓存当中，起了一个令牌池子用来做限流的工作。令牌的个数就是余票的个数。所以完全不可能出现超卖的问题。所以在这个前提之下，缓存当中更新的快还是慢并无所谓，扣减的顺序也无所谓。我们实现的是最终一致性。</p>
+<p><a target="_blank" rel="noopener" href="https://imgse.com/i/pE4TxFx"><img src="https://s21.ax1x.com/2025/04/20/pE4TxFx.png" alt="pE4TxFx.png"></a></p>
+</article><div class="post-copyright"><div class="post-copyright__author"><span class="post-copyright-meta"><i class="fas fa-circle-user fa-fw"></i>文章作者: </span><span class="post-copyright-info"><a href="http://example.com">Allimac</a></span></div><div class="post-copyright__type"><span class="post-copyright-meta"><i class="fas fa-square-arrow-up-right fa-fw"></i>文章链接: </span><span class="post-copyright-info"><a href="http://example.com/2025/04/22/12306Impl-4/">http://example.com/2025/04/22/12306Impl-4/</a></span></div><div class="post-copyright__notice"><span class="post-copyright-meta"><i class="fas fa-circle-exclamation fa-fw"></i>版权声明: </span><span class="post-copyright-info">本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明来源 <a href="http://example.com" target="_blank">AllimacBlog</a>！</span></div></div><div class="tag_share"><div class="post-meta__tag-list"><a class="post-meta__tags" href="/tags/%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97/">消息队列</a><a class="post-meta__tags" href="/tags/%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8/">布隆过滤器</a><a class="post-meta__tags" href="/tags/12306%E6%8A%80%E6%9C%AF%E6%A2%B3%E7%90%86/">12306技术梳理</a><a class="post-meta__tags" href="/tags/%E9%AB%98%E5%B9%B6%E5%8F%91%E9%97%AE%E9%A2%98%E8%A7%A3%E5%86%B3/">高并发问题解决</a></div><div class="post-share"><div class="social-share" data-image="/img/avatar.png" data-sites="facebook,twitter,wechat,weibo,qq"></div><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/css/share.min.css" media="print" onload="this.media='all'"><script src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/sharejs/dist/js/social-share.min.js" defer></script></div></div><nav class="pagination-post" id="pagination"><a class="pagination-related" href="/2025/04/22/12306Impl-3/" title="12306Impl-3"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info"><div class="info-1"><div class="info-item-1">上一篇</div><div class="info-item-2">12306Impl-3</div></div><div class="info-2"><div class="info-item-1">生成分布式雪花ID；Hutool线程池创建源码解析；项目线程池场景解析</div></div></div></a><a class="pagination-related" href="/2025/04/22/12306Business-1/" title="12306Business-1"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-right"><div class="info-1"><div class="info-item-1">下一篇</div><div class="info-item-2">12306Business-1</div></div><div class="info-2"><div class="info-item-1">用户注册流程解析；列车信息查询V1;列车信息查询V2</div></div></div></a></nav><div class="relatedPosts"><div class="headline"><i class="fas fa-thumbs-up fa-fw"></i><span>相关推荐</span></div><div class="relatedPosts-list"><a class="pagination-related" href="/2025/03/15/A-First-Look-At-Zookeeper/" title="A-First-Look-At-Zookeeper"><img class="cover" src="https://s21.ax1x.com/2025/03/15/pEaaHz9.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-03-15</div><div class="info-item-2">A-First-Look-At-Zookeeper</div></div><div class="info-2"><div class="info-item-1">初探Zookeeper，一些关于Zookeeper的问题</div></div></div></a><a class="pagination-related" href="/2025/03/15/A-First-Look-At-RocketMQ/" title="A-First-Look-At-RocketMQ"><img class="cover" src="https://s21.ax1x.com/2025/03/15/pEaULE8.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-03-15</div><div class="info-item-2">A-First-Look-At-RocketMQ</div></div><div class="info-2"><div class="info-item-1">初探RocketMQ，一些关于RocketMQ的问题</div></div></div></a><a class="pagination-related" href="/2025/03/15/A-First-Look-At-Kafka/" title="A-First-Look-At-Kafka"><img class="cover" src="https://s21.ax1x.com/2025/03/15/pEaUHDP.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-03-15</div><div class="info-item-2">A-First-Look-At-Kafka</div></div><div class="info-2"><div class="info-item-1">初探Kafka，一些关于Kafka的问题</div></div></div></a><a class="pagination-related" href="/2025/03/15/Push-Pull-ModeInMQ/" title="Push-Pull-ModeInMQ"><img class="cover" src="https://s21.ax1x.com/2025/03/15/pEaaqMR.png" alt="cover"><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-03-15</div><div class="info-item-2">Push-Pull-ModeInMQ</div></div><div class="info-2"><div class="info-item-1">消息队列当中的推拉模式</div></div></div></a><a class="pagination-related" href="/2025/03/22/BloomFilter/" title="BloomFilter"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-03-22</div><div class="info-item-2">BloomFilter</div></div><div class="info-2"><div class="info-item-1">布隆过滤器入门</div></div></div></a><a class="pagination-related" href="/2025/04/22/12306Impl-1/" title="12306Impl-1"><div class="cover" style="background: var(--default-bg-color)"></div><div class="info text-center"><div class="info-1"><div class="info-item-1"><i class="far fa-calendar-alt fa-fw"></i> 2025-04-22</div><div class="info-item-2">12306Impl-1</div></div><div class="info-2"><div class="info-item-1">12306开发的过程当中，会对核心业务的思路进行梳理。一个文档可能涉及七八个技术点左右。这篇文章主要介绍：发起支付的流程，搜索技术的选型。如何防止用户注册高并发情况下的缓存穿透。责任链模式进行校验</div></div></div></a></div></div></div><div class="aside-content" id="aside-content"><div class="card-widget card-info text-center"><div class="avatar-img"><img src="/img/avatar.png" onerror="this.onerror=null;this.src='/img/friend_404.gif'" alt="avatar"/></div><div class="author-info-name">Allimac</div><div class="author-info-description">华丽的仓库存放着我简陋的思想</div><div class="site-data"><a href="/archives/"><div class="headline">文章</div><div class="length-num">61</div></a><a href="/tags/"><div class="headline">标签</div><div class="length-num">65</div></a><a href="/categories/"><div class="headline">分类</div><div class="length-num">7</div></a></div><a id="card-info-btn" target="_blank" rel="noopener" href="https://github.com/AillemaCc"><i class="fab fa-github"></i><span>Follow Me</span></a><div class="card-info-social-icons"><a class="social-icon" href="https://github.com/AillemaCc" target="_blank" title="Github"><i class="fab fa-github" style="color: #24292e;"></i></a><a class="social-icon" href="http://www.swindle.icu/#/Home" target="_blank" title="曾经的博客"><i class="fas fa-envelope" style="color: #24292e;"></i></a></div></div><div class="card-widget card-announcement"><div class="item-headline"><i class="fas fa-bullhorn fa-shake"></i><span>公告</span></div><div class="announcement_content">这里是小梦一场的大床</div></div><div class="sticky_layout"><div class="card-widget" id="card-toc"><div class="item-headline"><i class="fas fa-stream"></i><span>目录</span><span class="toc-percentage"></span></div><div class="toc-content"><ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%B4%AD%E4%B9%B0%E5%88%97%E8%BD%A6%E4%BD%99%E7%A5%A8%E5%A6%82%E4%BD%95%E9%98%B2%E6%AD%A2%E5%BA%93%E5%AD%98%E8%B6%85%E5%8D%96%EF%BC%9F"><span class="toc-number">1.</span> <span class="toc-text">购买列车余票如何防止库存超卖？</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%B8%B8%E8%A7%81%E5%BA%93%E5%AD%98%E8%B6%85%E5%8D%96%E8%A7%A3%E5%86%B3%E6%96%B9%E6%A1%88"><span class="toc-number">1.1.</span> <span class="toc-text">常见库存超卖解决方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%95%B0%E6%8D%AE%E5%BA%93%E4%B9%90%E8%A7%82%E9%94%81"><span class="toc-number">1.1.1.</span> <span class="toc-text">1. 数据库乐观锁</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-Redis-%E7%BC%93%E5%AD%98%E4%BD%99%E9%87%8F%E6%89%A3%E5%87%8F"><span class="toc-number">1.1.2.</span> <span class="toc-text">2. Redis 缓存余量扣减</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E7%94%A8%EF%BC%9F"><span class="toc-number">1.1.3.</span> <span class="toc-text">3. 为什么不用？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E4%BB%A4%E7%89%8C%E9%99%90%E6%B5%81%E7%AE%97%E6%B3%95"><span class="toc-number">1.2.</span> <span class="toc-text">令牌限流算法</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E8%AE%BE%E8%AE%A1%E7%9B%AE%E7%9A%84%E4%B8%8D%E5%90%8C"><span class="toc-number">1.2.1.</span> <span class="toc-text">1. 设计目的不同</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E8%BF%87%E6%BB%A4%E5%A4%9A%E4%BD%99%E8%AF%B7%E6%B1%82%E6%B5%81%E9%87%8F"><span class="toc-number">1.2.2.</span> <span class="toc-text">1. 过滤多余请求流量</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E9%81%BF%E5%85%8D%E5%BA%A7%E4%BD%8D%E4%BD%99%E9%87%8F%E8%B6%85%E5%8D%96"><span class="toc-number">1.2.3.</span> <span class="toc-text">2. 避免座位余量超卖</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%80%BB%E7%BB%93"><span class="toc-number">1.3.</span> <span class="toc-text">总结</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E9%97%AE%E9%A2%98%E6%A0%B8%E5%BF%83"><span class="toc-number">1.3.1.</span> <span class="toc-text">问题核心</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#1-%E7%9B%B4%E6%8E%A5%E7%BC%93%E5%AD%98%E4%BD%99%E7%A5%A8%E6%95%B0%E6%8D%AE%E7%9A%84%E9%97%AE%E9%A2%98"><span class="toc-number">1.4.</span> <span class="toc-text">1. 直接缓存余票数据的问题</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E4%BD%99%E7%A5%A8%E7%9A%84%E5%85%B3%E8%81%94%E6%80%A7%E5%AF%BC%E8%87%B4%E6%89%A3%E5%87%8F%E5%A4%8D%E6%9D%82"><span class="toc-number">1.4.1.</span> <span class="toc-text">(1) 余票的关联性导致扣减复杂</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E9%AB%98%E5%B9%B6%E5%8F%91%E4%B8%8B%E7%9A%84%E7%AB%9E%E6%80%81%E6%9D%A1%E4%BB%B6"><span class="toc-number">1.4.2.</span> <span class="toc-text">(2) 高并发下的竞态条件</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E4%BB%A4%E7%89%8C%E9%99%90%E6%B5%81-Lua-%E8%84%9A%E6%9C%AC%EF%BC%9F"><span class="toc-number">1.5.</span> <span class="toc-text">2. 为什么需要令牌限流 + Lua 脚本？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E4%BB%A4%E7%89%8C%E9%99%90%E6%B5%81%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-number">1.5.1.</span> <span class="toc-text">(1) 令牌限流的作用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-Lua-%E8%84%9A%E6%9C%AC%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="toc-number">1.5.2.</span> <span class="toc-text">(2) Lua 脚本的作用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E8%83%BD%E7%9B%B4%E6%8E%A5%E7%94%A8-Redis-%E7%BC%93%E5%AD%98%E4%BD%99%E7%A5%A8%EF%BC%9F"><span class="toc-number">1.5.3.</span> <span class="toc-text">(3) 为什么不能直接用 Redis 缓存余票？</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#3-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5%E6%96%B9%E6%A1%88"><span class="toc-number">1.6.</span> <span class="toc-text">3. 最佳实践方案</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%8E%A8%E8%8D%90%E6%96%B9%E6%A1%88"><span class="toc-number">1.6.1.</span> <span class="toc-text">推荐方案</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%BB%93%E8%AE%BA"><span class="toc-number">1.7.</span> <span class="toc-text">结论</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%94%A8%E6%88%B7%E6%B3%A8%E5%86%8C%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8%E5%AE%B9%E9%87%8F%E8%AE%BE%E7%BD%AE%E4%BB%A5%E5%8F%8A%E7%A2%B0%E6%92%9E%E7%8E%87%E9%97%AE%E9%A2%98"><span class="toc-number">2.</span> <span class="toc-text">用户注册布隆过滤器容量设置以及碰撞率问题</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E7%94%A8%E6%88%B7%E6%B3%A8%E5%86%8C%E5%9C%BA%E6%99%AF%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8%E5%AE%9E%E6%88%98"><span class="toc-number">2.1.</span> <span class="toc-text">用户注册场景布隆过滤器实战</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8%E5%A4%A7%E5%B0%8F%E7%9A%84%E8%AE%A1%E7%AE%97%E5%85%AC%E5%BC%8F"><span class="toc-number">2.1.1.</span> <span class="toc-text">1. 布隆过滤器大小的计算公式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E4%BD%A0%E7%9A%84%E9%85%8D%E7%BD%AE%E7%A4%BA%E4%BE%8B%E5%88%86%E6%9E%90"><span class="toc-number">2.1.2.</span> <span class="toc-text">2. 你的配置示例分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E9%A2%84%E6%9C%9F%E6%8F%92%E5%85%A5%E9%87%8F%E5%A6%82%E4%BD%95%E5%BD%B1%E5%93%8D%E5%B8%83%E9%9A%86%E8%BF%87%E6%BB%A4%E5%99%A8%EF%BC%9F"><span class="toc-number">2.1.3.</span> <span class="toc-text">3. 预期插入量如何影响布隆过滤器？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E8%83%BD%E7%9B%B4%E6%8E%A5%E4%BD%BF%E7%94%A8%E7%BC%93%E5%AD%98%E5%AD%98%E5%82%A8%E6%89%80%E6%9C%89%E6%95%B0%E6%8D%AE%EF%BC%9F"><span class="toc-number">2.1.4.</span> <span class="toc-text">4. 为什么不能直接使用缓存存储所有数据？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E6%9C%80%E4%BD%B3%E5%AE%9E%E8%B7%B5%E5%BB%BA%E8%AE%AE"><span class="toc-number">2.1.5.</span> <span class="toc-text">5. 最佳实践建议</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93-1"><span class="toc-number">2.1.6.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E5%88%9D%E5%A7%8B%E5%AE%B9%E9%87%8F%E8%AF%84%E4%BC%B0%E4%B8%8D%E5%A4%9F%E7%94%A8%E6%80%8E%E4%B9%88%E5%8A%9E"><span class="toc-number">2.1.7.</span> <span class="toc-text">3. 初始容量评估不够用怎么办</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E6%80%8E%E4%B9%88%E6%8A%97%E8%8A%82%E5%81%87%E6%97%A5%E7%9A%84%E9%AB%98%E5%B9%B6%E5%8F%91"><span class="toc-number">3.</span> <span class="toc-text">怎么抗节假日的高并发</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#Redis-%E5%B8%B8%E7%94%A8%E9%83%A8%E7%BD%B2%E6%9E%B6%E6%9E%84"><span class="toc-number">3.1.</span> <span class="toc-text">Redis 常用部署架构</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E5%8D%95%E6%9C%BA%E9%83%A8%E7%BD%B2"><span class="toc-number">3.1.1.</span> <span class="toc-text">1. 单机部署</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E4%B8%BB%E4%BB%8E%E5%A4%8D%E5%88%B6%EF%BC%88Master-Slave%EF%BC%89"><span class="toc-number">3.1.2.</span> <span class="toc-text">2. 主从复制（Master-Slave）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-Sentinel-%E5%93%A8%E5%85%B5%E6%A8%A1%E5%BC%8F"><span class="toc-number">3.1.3.</span> <span class="toc-text">3. Sentinel 哨兵模式</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-Redis-Cluster"><span class="toc-number">3.1.4.</span> <span class="toc-text">4. Redis Cluster</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-Redis-Cluster-%E7%9A%84%E6%A0%B8%E5%BF%83%E8%AE%BE%E8%AE%A1"><span class="toc-number">3.1.5.</span> <span class="toc-text">1. Redis Cluster 的核心设计</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E6%95%B0%E6%8D%AE%E5%88%86%E7%89%87%EF%BC%88Sharding%EF%BC%89"><span class="toc-number">3.1.5.1.</span> <span class="toc-text">(1) 数据分片（Sharding）</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E9%AB%98%E5%8F%AF%E7%94%A8%EF%BC%88HA%EF%BC%89"><span class="toc-number">3.1.5.2.</span> <span class="toc-text">(2) 高可用（HA）</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81%E5%A4%9A%E4%B8%AA%E4%B8%BB%E8%8A%82%E7%82%B9%EF%BC%9F"><span class="toc-number">3.1.6.</span> <span class="toc-text">2. 为什么需要多个主节点？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E9%9B%86%E7%BE%A4%E9%83%A8%E7%BD%B2%E7%A4%BA%E4%BE%8B"><span class="toc-number">3.1.7.</span> <span class="toc-text">3. 集群部署示例</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%A6%82%E4%BD%95%E8%AE%BF%E9%97%AE%E9%9B%86%E7%BE%A4%EF%BC%9F"><span class="toc-number">3.1.8.</span> <span class="toc-text">4. 客户端如何访问集群？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E5%85%B3%E9%94%AE%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9"><span class="toc-number">3.1.9.</span> <span class="toc-text">5. 关键注意事项</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98%E8%A7%A3%E7%AD%94"><span class="toc-number">3.1.10.</span> <span class="toc-text">6. 常见问题解答</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#Q%EF%BC%9A%E5%8F%AF%E4%BB%A5%E5%8F%AA%E6%9C%89%E4%B8%BB%E8%8A%82%E7%82%B9%EF%BC%8C%E4%B8%8D%E8%A6%81%E4%BB%8E%E8%8A%82%E7%82%B9%E5%90%97%EF%BC%9F"><span class="toc-number">3.1.10.1.</span> <span class="toc-text">Q：可以只有主节点，不要从节点吗？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Q%EF%BC%9A%E4%B8%BB%E8%8A%82%E7%82%B9%E6%95%B0%E9%87%8F%E5%8F%AF%E4%BB%A5%E5%8A%A8%E6%80%81%E5%A2%9E%E5%8A%A0%E5%90%97%EF%BC%9F"><span class="toc-number">3.1.10.2.</span> <span class="toc-text">Q：主节点数量可以动态增加吗？</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Q%EF%BC%9A%E6%89%80%E6%9C%89%E4%B8%BB%E8%8A%82%E7%82%B9%E9%83%BD%E8%83%BD%E6%89%A7%E8%A1%8C%E5%86%99%E6%93%8D%E4%BD%9C%E5%90%97%EF%BC%9F"><span class="toc-number">3.1.10.3.</span> <span class="toc-text">Q：所有主节点都能执行写操作吗？</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-%E6%80%BB%E7%BB%93"><span class="toc-number">3.1.11.</span> <span class="toc-text">7. 总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#%E5%A6%82%E4%BD%95%E7%9C%8B%E5%BE%85-Cluster-%E6%A8%A1%E5%BC%8F%E5%BA%94%E5%AF%B9%E6%B5%B7%E9%87%8F%E5%B9%B6%E5%8F%91%EF%BC%9F"><span class="toc-number">3.2.</span> <span class="toc-text">如何看待 Cluster 模式应对海量并发？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88-Cluster-%E6%A8%A1%E5%BC%8F%E4%B8%8D%E9%80%82%E5%90%88%E8%B6%85%E5%A4%A7%E8%A7%84%E6%A8%A1%E9%9B%86%E7%BE%A4%EF%BC%9F"><span class="toc-number">3.2.1.</span> <span class="toc-text">1. 为什么 Cluster 模式不适合超大规模集群？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%B5%81%E8%A8%80%E5%8D%8F%E8%AE%AE%EF%BC%88Gossip-Protocol%EF%BC%89%E6%9E%81%E7%AE%80%E8%A7%A3%E9%87%8A"><span class="toc-number">3.2.2.</span> <span class="toc-text">流言协议（Gossip Protocol）极简解释</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%A0%B8%E5%BF%83%E7%89%B9%E7%82%B9%EF%BC%88%E7%94%A8%E7%8E%B0%E5%AE%9E%E6%AF%94%E5%96%BB%EF%BC%89"><span class="toc-number">3.2.3.</span> <span class="toc-text">核心特点（用现实比喻）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Redis-%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8%E6%B5%81%E8%A8%80%E5%8D%8F%E8%AE%AE%EF%BC%9F"><span class="toc-number">3.2.4.</span> <span class="toc-text">Redis 如何使用流言协议？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E7%94%A8%E6%B5%81%E8%A8%80%E5%8D%8F%E8%AE%AE%EF%BC%9F"><span class="toc-number">3.2.5.</span> <span class="toc-text">为什么用流言协议？</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93-2"><span class="toc-number">3.2.6.</span> <span class="toc-text">总结</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E5%A6%82%E4%BD%95%E7%94%A8-Redis-%E6%9E%84%E5%BB%BA%E8%B6%85%E5%A4%A7%E8%A7%84%E6%A8%A1%E9%9B%86%E7%BE%A4%EF%BC%9F"><span class="toc-number">3.2.7.</span> <span class="toc-text">2. 如何用 Redis 构建超大规模集群？</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E8%B4%AD%E4%B9%B0%E5%88%97%E8%BD%A6%E4%B8%AD%E9%97%B4%E7%AB%99%E7%82%B9%E4%BD%99%E7%A5%A8%E5%A6%82%E4%BD%95%E6%9B%B4%E6%96%B0%EF%BC%9F"><span class="toc-number">4.</span> <span class="toc-text">购买列车中间站点余票如何更新？</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#%E6%89%A3%E5%87%8F%E4%BD%99%E7%A5%A8%E9%80%BB%E8%BE%91"><span class="toc-number">4.1.</span> <span class="toc-text">扣减余票逻辑</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-%E6%9B%B4%E6%96%B0%E5%88%97%E8%BD%A6%E5%BA%A7%E4%BD%8D%E8%BD%A6%E7%A5%A8%E7%8A%B6%E6%80%81"><span class="toc-number">4.1.1.</span> <span class="toc-text">1. 更新列车座位车票状态</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-%E6%89%A3%E5%87%8F%E7%BC%93%E5%AD%98%E5%BA%A7%E4%BD%8D%E4%BD%99%E9%87%8F"><span class="toc-number">4.1.2.</span> <span class="toc-text">2. 扣减缓存座位余量</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#%E7%BC%93%E5%AD%98%E6%9C%AA%E5%91%BD%E4%B8%AD%EF%BC%88count-0%EF%BC%89"><span class="toc-number">4.1.2.1.</span> <span class="toc-text">缓存未命中（count &gt; 0）</span></a></li></ol></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E4%BD%99%E7%A5%A8Binlog%E6%9B%B4%E6%96%B0%E5%BB%B6%E8%BF%9F%E9%97%AE%E9%A2%98%E5%A6%82%E4%BD%95%E8%A7%A3%E5%86%B3%EF%BC%9F"><span class="toc-number">5.</span> <span class="toc-text">余票Binlog更新延迟问题如何解决？</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Binlog-%E5%BC%82%E6%AD%A5%E6%89%A3%E5%87%8F%E7%9A%84%E5%BB%B6%E8%BF%9F%E6%9D%A5%E6%BA%90%E5%88%86%E6%9E%90"><span class="toc-number">5.0.1.</span> <span class="toc-text">Binlog + 异步扣减的延迟来源分析</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#1-MySQL-Binlog-%E7%94%9F%E6%88%90%E4%B8%8E%E5%90%8C%E6%AD%A5%E5%BB%B6%E8%BF%9F"><span class="toc-number">5.0.2.</span> <span class="toc-text">1. MySQL Binlog 生成与同步延迟</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-MySQL-%E4%BA%8B%E5%8A%A1%E6%8F%90%E4%BA%A4%E5%88%B0-Binlog-%E5%86%99%E5%85%A5"><span class="toc-number">5.0.2.1.</span> <span class="toc-text">(1) MySQL 事务提交到 Binlog 写入</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-Binlog-%E6%96%87%E4%BB%B6%E5%88%87%E6%8D%A2%E4%B8%8E%E5%A4%8D%E5%88%B6"><span class="toc-number">5.0.2.2.</span> <span class="toc-text">(2) Binlog 文件切换与复制</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#2-Binlog-%E8%A7%A3%E6%9E%90%E5%B7%A5%E5%85%B7%EF%BC%88Canal-Debezium%EF%BC%89%E5%A4%84%E7%90%86%E5%BB%B6%E8%BF%9F"><span class="toc-number">5.0.3.</span> <span class="toc-text">2. Binlog 解析工具（Canal&#x2F;Debezium）处理延迟</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E8%A7%A3%E6%9E%90-Binlog-%E7%9A%84%E6%97%B6%E6%9C%BA"><span class="toc-number">5.0.3.1.</span> <span class="toc-text">(1) 解析 Binlog 的时机</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-%E7%BD%91%E7%BB%9C%E4%BC%A0%E8%BE%93%E5%88%B0-MQ"><span class="toc-number">5.0.3.2.</span> <span class="toc-text">(2) 网络传输到 MQ</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#3-%E6%B6%88%E6%81%AF%E9%98%9F%E5%88%97%EF%BC%88MQ%EF%BC%89%E7%9A%84%E6%8A%95%E9%80%92%E4%B8%8E%E6%B6%88%E8%B4%B9%E5%BB%B6%E8%BF%9F"><span class="toc-number">5.0.4.</span> <span class="toc-text">3. 消息队列（MQ）的投递与消费延迟</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E6%B6%88%E6%81%AF%E5%A0%86%E7%A7%AF%E4%B8%8E%E6%B6%88%E8%B4%B9%E9%80%9F%E5%BA%A6"><span class="toc-number">5.0.4.1.</span> <span class="toc-text">(1) 消息堆积与消费速度</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-MQ-%E8%87%AA%E8%BA%AB%E6%9C%BA%E5%88%B6"><span class="toc-number">5.0.4.2.</span> <span class="toc-text">(2) MQ 自身机制</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#4-Redis-%E6%93%8D%E4%BD%9C%E5%BB%B6%E8%BF%9F"><span class="toc-number">5.0.5.</span> <span class="toc-text">4. Redis 操作延迟</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-%E6%B6%88%E8%B4%B9%E8%80%85%E5%A4%84%E7%90%86%E9%80%BB%E8%BE%91"><span class="toc-number">5.0.5.1.</span> <span class="toc-text">(1) 消费者处理逻辑</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-Redis-%E9%9B%86%E7%BE%A4%E6%89%A9%E5%B1%95%E6%80%A7"><span class="toc-number">5.0.5.2.</span> <span class="toc-text">(2) Redis 集群扩展性</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#5-%E5%BB%B6%E8%BF%9F%E6%B1%87%E6%80%BB%EF%BC%88%E5%85%B8%E5%9E%8B%E5%9C%BA%E6%99%AF%EF%BC%89"><span class="toc-number">5.0.6.</span> <span class="toc-text">5. 延迟汇总（典型场景）</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-%E5%A6%82%E4%BD%95%E5%87%8F%E5%B0%91%E5%BB%B6%E8%BF%9F%EF%BC%9F"><span class="toc-number">5.0.7.</span> <span class="toc-text">6. 如何减少延迟？</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#1-MySQL-%E5%B1%82%E4%BC%98%E5%8C%96"><span class="toc-number">5.0.7.1.</span> <span class="toc-text">(1) MySQL 层优化</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#2-Binlog-%E8%A7%A3%E6%9E%90%E4%BC%98%E5%8C%96"><span class="toc-number">5.0.7.2.</span> <span class="toc-text">(2) Binlog 解析优化</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#3-MQ-%E5%B1%82%E4%BC%98%E5%8C%96"><span class="toc-number">5.0.7.3.</span> <span class="toc-text">(3) MQ 层优化</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#4-Redis-%E5%B1%82%E4%BC%98%E5%8C%96"><span class="toc-number">5.0.7.4.</span> <span class="toc-text">(4) Redis 层优化</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#7-%E4%B8%9A%E5%8A%A1%E5%AE%B9%E5%BF%8D%E5%BA%A6%E4%B8%8E%E6%9D%83%E8%A1%A1"><span class="toc-number">5.0.8.</span> <span class="toc-text">7. 业务容忍度与权衡</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#%E6%80%BB%E7%BB%93-3"><span class="toc-number">5.0.9.</span> <span class="toc-text">总结</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#12306-%E6%80%8E%E4%B9%88%E5%81%9A%E7%9A%84%EF%BC%9F"><span class="toc-number">5.1.</span> <span class="toc-text">12306 怎么做的？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Binlog-%E6%9B%B4%E6%96%B0%E5%BB%B6%E8%BF%9F%E6%9C%89%E4%BB%80%E4%B9%88%E9%97%AE%E9%A2%98%EF%BC%9F"><span class="toc-number">5.2.</span> <span class="toc-text">Binlog 更新延迟有什么问题？</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#%E7%9B%91%E5%90%ACBinlog%E7%9A%84RocketMQ%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E9%A1%BA%E5%BA%8F%E6%80%A7%EF%BC%9F"><span class="toc-number">6.</span> <span class="toc-text">监听Binlog的RocketMQ如何保证顺序性？</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#RocketMQ-%E5%A6%82%E4%BD%95%E4%BF%9D%E8%AF%81%E6%B6%88%E8%B4%B9%E9%A1%BA%E5%BA%8F%E6%80%A7%EF%BC%9F"><span class="toc-number">6.1.</span> <span class="toc-text">RocketMQ 如何保证消费顺序性？</span></a></li></ol></li></ol></div></div><div class="card-widget card-recent-post"><div class="item-headline"><i class="fas fa-history"></i><span>最新文章</span></div><div class="aside-list"><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/22/12306Business-2/" title="12306Business-2">12306Business-2</a><time datetime="2025-04-22T10:14:27.000Z" title="发表于 2025-04-22 18:14:27">2025-04-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/22/12306Business-1/" title="12306Business-1">12306Business-1</a><time datetime="2025-04-22T10:10:07.000Z" title="发表于 2025-04-22 18:10:07">2025-04-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/22/12306Impl-4/" title="12306Impl-4">12306Impl-4</a><time datetime="2025-04-22T10:06:14.000Z" title="发表于 2025-04-22 18:06:14">2025-04-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/22/12306Impl-3/" title="12306Impl-3">12306Impl-3</a><time datetime="2025-04-22T10:03:30.000Z" title="发表于 2025-04-22 18:03:30">2025-04-22</time></div></div><div class="aside-list-item no-cover"><div class="content"><a class="title" href="/2025/04/22/12306Impl-2/" title="12306Impl-2">12306Impl-2</a><time datetime="2025-04-22T10:00:54.000Z" title="发表于 2025-04-22 18:00:54">2025-04-22</time></div></div></div></div></div></div></main><footer id="footer"><div id="footer-wrap"><div class="copyright">&copy;2024 - 2025 By Allimac</div><div class="framework-info"><span>框架 </span><a target="_blank" rel="noopener" href="https://hexo.io">Hexo</a><span class="footer-separator">|</span><span>主题 </span><a target="_blank" rel="noopener" href="https://github.com/jerryc127/hexo-theme-butterfly">Butterfly</a></div></div></footer></div><div id="rightside"><div id="rightside-config-hide"><button id="readmode" type="button" title="阅读模式"><i class="fas fa-book-open"></i></button><button id="darkmode" type="button" title="日间和夜间模式切换"><i class="fas fa-adjust"></i></button><button id="hide-aside-btn" type="button" title="单栏和双栏切换"><i class="fas fa-arrows-alt-h"></i></button></div><div id="rightside-config-show"><button id="rightside-config" type="button" title="设置"><i class="fas fa-cog fa-spin"></i></button><button class="close" id="mobile-toc-button" type="button" title="目录"><i class="fas fa-list-ul"></i></button><button id="go-up" type="button" title="回到顶部"><span class="scroll-percent"></span><i class="fas fa-arrow-up"></i></button></div></div><div><script src="/js/utils.js"></script><script src="/js/main.js"></script><script src="https://cdn.jsdelivr.net/npm/instant.page/instantpage.min.js" type="module"></script><script src="https://cdn.jsdelivr.net/npm/node-snackbar/dist/snackbar.min.js"></script><div class="js-pjax"><script>(() => {
+  const runMermaid = ele => {
+    window.loadMermaid = true
+    const theme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'default'
+
+    ele.forEach((item, index) => {
+      const mermaidSrc = item.firstElementChild
+      const mermaidThemeConfig = `%%{init:{ 'theme':'${theme}'}}%%\n`
+      const mermaidID = `mermaid-${index}`
+      const mermaidDefinition = mermaidThemeConfig + mermaidSrc.textContent
+
+      const renderFn = mermaid.render(mermaidID, mermaidDefinition)
+      const renderMermaid = svg => {
+        mermaidSrc.insertAdjacentHTML('afterend', svg)
+      }
+
+      // mermaid v9 and v10 compatibility
+      typeof renderFn === 'string' ? renderMermaid(renderFn) : renderFn.then(({ svg }) => renderMermaid(svg))
+    })
+  }
+
+  const codeToMermaid = () => {
+    const codeMermaidEle = document.querySelectorAll('pre > code.mermaid')
+    if (codeMermaidEle.length === 0) return
+
+    codeMermaidEle.forEach(ele => {
+      const preEle = document.createElement('pre')
+      preEle.className = 'mermaid-src'
+      preEle.hidden = true
+      preEle.textContent = ele.textContent
+      const newEle = document.createElement('div')
+      newEle.className = 'mermaid-wrap'
+      newEle.appendChild(preEle)
+      ele.parentNode.replaceWith(newEle)
+    })
+  }
+
+  const loadMermaid = () => {
+    if (true) codeToMermaid()
+    const $mermaid = document.querySelectorAll('#article-container .mermaid-wrap')
+    if ($mermaid.length === 0) return
+
+    const runMermaidFn = () => runMermaid($mermaid)
+    btf.addGlobalFn('themeChange', runMermaidFn, 'mermaid')
+    window.loadMermaid ? runMermaidFn() : btf.getScript('https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js').then(runMermaidFn)
+  }
+
+  btf.addGlobalFn('encrypt', loadMermaid, 'mermaid')
+  window.pjax ? loadMermaid() : document.addEventListener('DOMContentLoaded', loadMermaid)
+})()</script></div><script id="canvas_nest" defer="defer" color="0,0,255" opacity="0.7" zIndex="-1" count="99" mobile="false" src="https://cdn.jsdelivr.net/npm/butterfly-extsrc/dist/canvas-nest.min.js"></script><script async data-pjax src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script></div></body></html>
